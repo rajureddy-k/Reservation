@@ -1,15 +1,17 @@
 package com.movie.amqp;
 
 
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.amqp.core.AmqpTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 
 @Component
-@Slf4j
 public class RabbitMqMessageProducer {
+
+    private static final Logger log = LoggerFactory.getLogger(RabbitMqMessageProducer.class);
 
     private final AmqpTemplate amqpTemplate;
     public RabbitMqMessageProducer(@Qualifier("amqpTemplate") AmqpTemplate amqpTemplate) {

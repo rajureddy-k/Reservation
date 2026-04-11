@@ -32,6 +32,14 @@ import java.util.stream.Collectors;
         private final CinemaClient cinemaClient;
         private final RabbitMqMessageProducer rabbitMqMessageProducer;
 
+        public MovieScheduleService(MovieScheduleDAO movieScheduleDAO, MovieScheduleDTOMapper movieScheduleDTOMapper, SeatClient seatClient, MovieClient movieClient, CinemaClient cinemaClient, RabbitMqMessageProducer rabbitMqMessageProducer) {
+            this.movieScheduleDAO = movieScheduleDAO;
+            this.movieScheduleDTOMapper = movieScheduleDTOMapper;
+            this.seatClient = seatClient;
+            this.movieClient = movieClient;
+            this.cinemaClient = cinemaClient;
+            this.rabbitMqMessageProducer = rabbitMqMessageProducer;
+        }
 
     public List<MovieScheduleDTO>getAllSchedules(){
         return movieScheduleDAO.selectAllSchedules()

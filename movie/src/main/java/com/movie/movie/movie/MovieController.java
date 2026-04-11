@@ -5,7 +5,8 @@ package com.movie.movie.movie;
 
 import com.movie.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -22,10 +23,10 @@ import java.util.List;
  * @author DMITRII LEVKIN on 30/09/2024
  * @project MovieReservationSystem
  */
-@Slf4j
 @RestController
 @RequestMapping(path = "api/v1/movies")
 public class MovieController {
+    private static final Logger log = LoggerFactory.getLogger(MovieController.class);
 
     private final MovieService movieService;
 

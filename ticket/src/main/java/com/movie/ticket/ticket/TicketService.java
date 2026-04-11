@@ -14,6 +14,8 @@ import com.movie.exceptions.AlreadyOccupiedException;
 import com.movie.exceptions.HandleRuntimeException;
 import com.movie.exceptions.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -33,6 +35,7 @@ import java.util.stream.Collectors;
 @Service
 @Slf4j
 public class TicketService {
+    private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
     private final TicketDAO ticketDAO;
 

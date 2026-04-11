@@ -8,6 +8,8 @@ import com.movie.movie.movie.MovieDTO;
 import com.movie.movie.movie.MovieRegistrationRequest;
 import com.movie.movie.movie.MovieUpdateRequest;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -29,6 +31,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @SpringBootTest(classes = MovieApp.class,webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Slf4j
 public class MovieServiceIntegrationTest {
+
+    private static final Logger log = LoggerFactory.getLogger(MovieServiceIntegrationTest.class);
 
     @Autowired
     private WebTestClient webTestClient;

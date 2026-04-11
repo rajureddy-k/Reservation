@@ -4,6 +4,8 @@ package com.movie.schedules.movieschedules;
 import com.movie.exceptions.ResourceNotFoundException;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
@@ -24,6 +26,8 @@ import java.util.List;
 @RestController
 @RequestMapping(path = "api/v1/schedules")
 public class MovieScheduleController {
+    private static final Logger log = LoggerFactory.getLogger(MovieScheduleController.class);
+
     private final MovieScheduleService movieScheduleService;
 
     public MovieScheduleController(MovieScheduleService movieScheduleService) {

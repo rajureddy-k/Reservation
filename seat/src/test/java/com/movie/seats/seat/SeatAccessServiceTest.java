@@ -6,6 +6,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.Optional;
 
@@ -21,6 +23,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 class SeatAccessServiceTest extends SeatAbstractDaoUnitTest {
+
+    private static final Logger log = LoggerFactory.getLogger(SeatAccessServiceTest.class);
 
     private SeatAccessService underTest;
 

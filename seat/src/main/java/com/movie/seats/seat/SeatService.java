@@ -11,7 +11,8 @@ import com.movie.client.notification.NotificationRequest;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import jakarta.transaction.Transactional;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,9 +35,9 @@ import java.util.List;
  * @project MovieReservationSystem
  */
 @Service
-@Slf4j
 @Transactional
 public class SeatService {
+    private static final Logger log = LoggerFactory.getLogger(SeatService.class);
 
     private final SeatDAO seatDAO;
     private final SeatDTOMapper seatDTOMapper;

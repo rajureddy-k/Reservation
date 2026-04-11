@@ -16,6 +16,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.UUID;
@@ -31,6 +33,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Slf4j
 public class AdminServiceIntegrationTest extends AbstractDaoUnitTest {
+    private static final Logger log = LoggerFactory.getLogger(AdminServiceIntegrationTest.class);
+
     @Autowired
     private WebTestClient webTestClient;
     @Autowired
