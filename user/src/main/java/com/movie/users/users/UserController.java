@@ -7,7 +7,8 @@ import com.movie.exceptions.DuplicateResourceException;
 import com.movie.exceptions.ResourceNotFoundException;
 import com.movie.jwt.jwt.JWTUtil;
 import jakarta.validation.Valid;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -19,10 +20,10 @@ import java.util.List;
  * @author DMITRII LEVKIN on 22/09/2024
  * @project MovieReservationSystem
  */
-@Slf4j
 @RestController
 @RequestMapping(path = "api/v1/users")
 public class UserController {
+    private static final Logger log = LoggerFactory.getLogger(UserController.class);
 
     private  final UserService userService;
     private final JWTUtil jwtUtil;

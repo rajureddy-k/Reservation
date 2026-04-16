@@ -1,6 +1,8 @@
 package com.movie.ticket.ticket;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -22,6 +24,8 @@ import java.util.Optional;
 @Repository("ticketJdbc")
 @Slf4j
 public class TicketAccessService implements TicketDAO  {
+    private static final Logger log = LoggerFactory.getLogger(TicketAccessService.class);
+
     private final JdbcTemplate jdbcTemplate;
     private final DataSource dataSource;
     private final TicketRowMapper rowMapper;

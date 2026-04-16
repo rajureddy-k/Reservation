@@ -39,13 +39,134 @@ public class MovieSchedule {
     @Column(nullable = false)
     private LocalTime endTime;
     @NotNull
-
     @Column(name = "available_seats")
     private Integer availableSeats;
     @Column(name = "cinema_id")
     private Long cinemaId;
     @Column(name = "movie_id")
     private Long movieId;
+
+    public MovieSchedule() {
+    }
+
+    public MovieSchedule(Long scheduleId, LocalDate date, LocalTime startTime, LocalTime endTime, Integer availableSeats, Long cinemaId, Long movieId) {
+        this.scheduleId = scheduleId;
+        this.date = date;
+        this.startTime = startTime;
+        this.endTime = endTime;
+        this.availableSeats = availableSeats;
+        this.cinemaId = cinemaId;
+        this.movieId = movieId;
+    }
+
+    public Long getScheduleId() {
+        return scheduleId;
+    }
+
+    public void setScheduleId(Long scheduleId) {
+        this.scheduleId = scheduleId;
+    }
+
+    public LocalDate getDate() {
+        return date;
+    }
+
+    public void setDate(LocalDate date) {
+        this.date = date;
+    }
+
+    public LocalTime getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(LocalTime startTime) {
+        this.startTime = startTime;
+    }
+
+    public LocalTime getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(LocalTime endTime) {
+        this.endTime = endTime;
+    }
+
+    public Integer getAvailableSeats() {
+        return availableSeats;
+    }
+
+    public void setAvailableSeats(Integer availableSeats) {
+        this.availableSeats = availableSeats;
+    }
+
+    public Long getCinemaId() {
+        return cinemaId;
+    }
+
+    public void setCinemaId(Long cinemaId) {
+        this.cinemaId = cinemaId;
+    }
+
+    public Long getMovieId() {
+        return movieId;
+    }
+
+    public void setMovieId(Long movieId) {
+        this.movieId = movieId;
+    }
+
+    public static MovieScheduleBuilder builder() {
+        return new MovieScheduleBuilder();
+    }
+
+    public static class MovieScheduleBuilder {
+        private Long scheduleId;
+        private LocalDate date;
+        private LocalTime startTime;
+        private LocalTime endTime;
+        private Integer availableSeats;
+        private Long cinemaId;
+        private Long movieId;
+
+        public MovieScheduleBuilder scheduleId(Long scheduleId) {
+            this.scheduleId = scheduleId;
+            return this;
+        }
+
+        public MovieScheduleBuilder date(LocalDate date) {
+            this.date = date;
+            return this;
+        }
+
+        public MovieScheduleBuilder startTime(LocalTime startTime) {
+            this.startTime = startTime;
+            return this;
+        }
+
+        public MovieScheduleBuilder endTime(LocalTime endTime) {
+            this.endTime = endTime;
+            return this;
+        }
+
+        public MovieScheduleBuilder availableSeats(Integer availableSeats) {
+            this.availableSeats = availableSeats;
+            return this;
+        }
+
+        public MovieScheduleBuilder cinemaId(Long cinemaId) {
+            this.cinemaId = cinemaId;
+            return this;
+        }
+
+        public MovieScheduleBuilder movieId(Long movieId) {
+            this.movieId = movieId;
+            return this;
+        }
+
+        public MovieSchedule build() {
+            return new MovieSchedule(scheduleId, date, startTime, endTime, availableSeats, cinemaId, movieId);
+        }
+    }
 
     @Override
     public boolean equals(Object o) {

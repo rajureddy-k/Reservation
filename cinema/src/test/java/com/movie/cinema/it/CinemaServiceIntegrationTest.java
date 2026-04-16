@@ -9,6 +9,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.core.ParameterizedTypeReference;
@@ -30,6 +32,8 @@ import static org.springframework.http.HttpHeaders.AUTHORIZATION;
 @SpringBootTest(classes = CinemaApp.class,webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @Slf4j
 public class CinemaServiceIntegrationTest {
+    private static final Logger log = LoggerFactory.getLogger(CinemaServiceIntegrationTest.class);
+
     @Autowired
     private WebTestClient webTestClient;
 

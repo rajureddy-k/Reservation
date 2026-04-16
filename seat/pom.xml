@@ -15,6 +15,7 @@
     <properties>
         <java.version>21</java.version>
         <spring-boot.main-class>com.movie.seats.SeatApp</spring-boot.main-class>        
+        <spring-boot.main-class>com.movie.seats.SeatApp</spring-boot.main-class>
     </properties>
 
     <dependencies>

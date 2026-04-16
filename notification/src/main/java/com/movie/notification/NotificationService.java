@@ -2,7 +2,6 @@ package com.movie.notification;
 
 
 import com.movie.client.notification.NotificationRequest;
-import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -12,11 +11,12 @@ import java.time.LocalDateTime;
  * @project MovieReservationSystem
  */
 @Service
-@AllArgsConstructor
 public class NotificationService {
     private final NotificationRepository notificationRepository;
 
-
+    public NotificationService(NotificationRepository notificationRepository) {
+        this.notificationRepository = notificationRepository;
+    }
 
     public void send(NotificationRequest notificationRequest) {
 

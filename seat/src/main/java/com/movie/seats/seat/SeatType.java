@@ -1,15 +1,11 @@
 package com.movie.seats.seat;
 
-import lombok.Getter;
-import lombok.Setter;
-
 import java.math.BigDecimal;
 
 /**
  * @author DMITRII LEVKIN on 29/12/2024
  * @project Movie-Reservation-System
  */
-@Getter
 public enum SeatType {
 
     STANDARD("Standard", BigDecimal.valueOf(15.00)),
@@ -22,6 +18,14 @@ public enum SeatType {
     SeatType(String type, BigDecimal price) {
         this.type = type;
         this.price = price;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public BigDecimal getPrice() {
+        return price;
     }
 
     public static BigDecimal getPriceByType(String type) {

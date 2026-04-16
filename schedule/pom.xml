@@ -16,6 +16,8 @@
 
     <java.version>21</java.version>
          <spring-boot.main-class>com.movie.schedules.MovieScheduleApp</spring-boot.main-class>         
+        <java.version>21</java.version>
+        <spring-boot.main-class>com.movie.schedules.MovieScheduleApp</spring-boot.main-class>
     </properties>
 
     <dependencies>

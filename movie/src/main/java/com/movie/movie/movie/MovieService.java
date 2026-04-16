@@ -7,7 +7,8 @@ import com.movie.client.notification.NotificationRequest;
 import com.movie.exceptions.DuplicateResourceException;
 import com.movie.exceptions.RequestValidationException;
 import com.movie.exceptions.ResourceNotFoundException;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
@@ -19,8 +20,8 @@ import java.util.stream.Collectors;
  * @project MovieReservationSystem
  */
 @Service
-@Slf4j
 public class MovieService {
+    private static final Logger log = LoggerFactory.getLogger(MovieService.class);
 
     private final MovieDAO movieDAO;
     private final MovieDTOMapper movieDTOMapper;

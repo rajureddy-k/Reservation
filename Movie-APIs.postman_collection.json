@@ -1,0 +1,620 @@
+{
+  "info": {
+    "name": "Movie Reservation System APIs",
+    "description": "Complete Postman collection for all microservices APIs in the Movie Reservation System. Includes authentication, CRUD operations for users, movies, cinemas, seats, schedules, and tickets.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/auth/login",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Login to get JWT token. Update email/password as needed."
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    const response = pm.response.json();",
+                  "    pm.environment.set('jwt_token', pm.response.headers.get('Authorization'));",
+                  "}"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Validate Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{user_url}}/api/v1/auth/validate",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "auth", "validate"]
+            },
+            "description": "Validate JWT token."
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Service",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/users",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users"]
+            }
+          }
+        },
+        {
+          "name": "Get User by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{user_url}}/api/v1/users/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"John\",\n  \"lastName\": \"Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"userName\": \"johndoe\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/users",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users"]
+            }
+          },
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.environment.set('jwt_token', pm.response.headers.get('Authorization'));"
+                ]
+              }
+            }
+          ]
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Jane\",\n  \"lastName\": \"Doe\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/users/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{user_url}}/api/v1/users/1",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "users", "1"]
+            }
+          }
+        },
+        {
+          "name": "Admin: Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{user_url}}/api/v1/admin",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "admin"]
+            }
+          }
+        },
+        {
+          "name": "Admin: Register Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"firstName\": \"Admin\",\n  \"lastName\": \"User\",\n  \"email\": \"admin@example.com\",\n  \"password\": \"adminpass\",\n  \"userName\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{user_url}}/api/v1/admin",
+              "host": ["{{user_url}}"],
+              "path": ["api", "v1", "admin"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Movie Service",
+      "item": [
+        {
+          "name": "Get All Movies",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{movie_url}}/api/v1/movies",
+              "host": ["{{movie_url}}"],
+              "path": ["api", "v1", "movies"]
+            }
+          }
+        },
+        {
+          "name": "Get Movie by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{movie_url}}/api/v1/movies/1",
+              "host": ["{{movie_url}}"],
+              "path": ["api", "v1", "movies", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Movie",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieName\": \"Inception\",\n  \"year\": 2010,\n  \"country\": \"USA\",\n  \"genre\": \"Sci-Fi\",\n  \"description\": \"A mind-bending thriller\"\n}"
+            },
+            "url": {
+              "raw": "{{movie_url}}/api/v1/movies",
+              "host": ["{{movie_url}}"],
+              "path": ["api", "v1", "movies"]
+            }
+          }
+        },
+        {
+          "name": "Update Movie",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"description\": \"Updated description\"\n}"
+            },
+            "url": {
+              "raw": "{{movie_url}}/api/v1/movies/1",
+              "host": ["{{movie_url}}"],
+              "path": ["api", "v1", "movies", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Movie",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{movie_url}}/api/v1/movies/1",
+              "host": ["{{movie_url}}"],
+              "path": ["api", "v1", "movies", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Cinema Service",
+      "item": [
+        {
+          "name": "Get All Cinemas",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cinema_url}}/api/v1/cinemas",
+              "host": ["{{cinema_url}}"],
+              "path": ["api", "v1", "cinemas"]
+            }
+          }
+        },
+        {
+          "name": "Get Cinema by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{cinema_url}}/api/v1/cinemas/1",
+              "host": ["{{cinema_url}}"],
+              "path": ["api", "v1", "cinemas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Cinema",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cinemaName\": \"Downtown Cinema\",\n  \"location\": \"123 Main St\",\n  \"totalSeats\": 200\n}"
+            },
+            "url": {
+              "raw": "{{cinema_url}}/api/v1/cinemas",
+              "host": ["{{cinema_url}}"],
+              "path": ["api", "v1", "cinemas"]
+            }
+          }
+        },
+        {
+          "name": "Update Cinema",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"location\": \"456 New St\"\n}"
+            },
+            "url": {
+              "raw": "{{cinema_url}}/api/v1/cinemas/1",
+              "host": ["{{cinema_url}}"],
+              "path": ["api", "v1", "cinemas", "1"]
+            }
+          }
+        },
+        {
+          "name": "Delete Cinema",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{cinema_url}}/api/v1/cinemas/1",
+              "host": ["{{cinema_url}}"],
+              "path": ["api", "v1", "cinemas", "1"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Seat Service",
+      "item": [
+        {
+          "name": "Get All Seats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{seat_url}}/api/v1/seats",
+              "host": ["{{seat_url}}"],
+              "path": ["api", "v1", "seats"]
+            }
+          }
+        },
+        {
+          "name": "Get Seats by Cinema",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{seat_url}}/api/v1/seats/cinema/1",
+              "host": ["{{seat_url}}"],
+              "path": ["api", "v1", "seats", "cinema", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Seat",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cinemaId\": 1,\n  \"row\": \"A\",\n  \"column\": 1,\n  \"seatType\": \"STANDARD\",\n  \"price\": 10.00\n}"
+            },
+            "url": {
+              "raw": "{{seat_url}}/api/v1/seats",
+              "host": ["{{seat_url}}"],
+              "path": ["api", "v1", "seats"]
+            }
+          }
+        },
+        {
+          "name": "Update Seat Occupation",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "true"
+            },
+            "url": {
+              "raw": "{{seat_url}}/api/v1/seats/1/update-occupation",
+              "host": ["{{seat_url}}"],
+              "path": ["api", "v1", "seats", "1", "update-occupation"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Schedule Service",
+      "item": [
+        {
+          "name": "Get All Schedules",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{schedule_url}}/api/v1/schedules",
+              "host": ["{{schedule_url}}"],
+              "path": ["api", "v1", "schedules"]
+            }
+          }
+        },
+        {
+          "name": "Get Schedules by Cinema",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{schedule_url}}/api/v1/schedules/cinema/1",
+              "host": ["{{schedule_url}}"],
+              "path": ["api", "v1", "schedules", "cinema", "1"]
+            }
+          }
+        },
+        {
+          "name": "Create Schedule",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"movieId\": 1,\n  \"cinemaId\": 1,\n  \"startTime\": \"14:00\",\n  \"date\": \"2024-12-01\",\n  \"availableSeats\": 100\n}"
+            },
+            "url": {
+              "raw": "{{schedule_url}}/api/v1/schedules",
+              "host": ["{{schedule_url}}"],
+              "path": ["api", "v1", "schedules"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ticket Service",
+      "item": [
+        {
+          "name": "Get My Tickets",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{ticket_url}}/api/v1/ticket/myTickets",
+              "host": ["{{ticket_url}}"],
+              "path": ["api", "v1", "ticket", "myTickets"]
+            }
+          }
+        },
+        {
+          "name": "Create Ticket",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "{{jwt_token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"scheduleId\": 1,\n  \"seatIds\": [1, 2],\n  \"userId\": 1\n}"
+            },
+            "url": {
+              "raw": "{{ticket_url}}/api/v1/ticket",
+              "host": ["{{ticket_url}}"],
+              "path": ["api", "v1", "ticket"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "user_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    },
+    {
+      "key": "movie_url",
+      "value": "http://localhost:8084",
+      "type": "string"
+    },
+    {
+      "key": "cinema_url",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "seat_url",
+      "value": "http://localhost:8082",
+      "type": "string"
+    },
+    {
+      "key": "schedule_url",
+      "value": "http://localhost:8085",
+      "type": "string"
+    },
+    {
+      "key": "ticket_url",
+      "value": "http://localhost:8087",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

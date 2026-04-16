@@ -16,11 +16,16 @@
 
         <spring-boot.main-class>com.movie.eureka.EurekaServerApplication</spring-boot.main-class>        
 
+        <spring-boot.main-class>com.movie.eureka.EurekaServerApplication</spring-boot.main-class>
     </properties>
 
     <build>
         <plugins>
             
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
         </plugins>
     </build>
 

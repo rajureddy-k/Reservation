@@ -13,6 +13,8 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.List;
@@ -28,6 +30,8 @@ import static org.mockito.Mockito.when;
 @Slf4j
 @ExtendWith(MockitoExtension.class)
 class MovieScheduleServiceTest {
+    private static final Logger log = LoggerFactory.getLogger(MovieScheduleServiceTest.class);
+
     @Mock
     private  MovieScheduleService underTest;
     @Mock

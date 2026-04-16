@@ -14,6 +14,8 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.core.publisher.Mono;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.HttpHeaders.AUTHORIZATION;
@@ -34,6 +36,8 @@ import java.util.Map;
 @Slf4j
 
 public class ScheduleServiceIntegrationTest  extends ScheduleAbstractDaoUnitTest {
+    private static final Logger log = LoggerFactory.getLogger(ScheduleServiceIntegrationTest.class);
+
     @Autowired
     private WebTestClient webTestClient;
 

@@ -3,6 +3,8 @@ package com.movie.schedules.movieschedules;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 
@@ -18,6 +20,8 @@ import java.util.Optional;
 @Slf4j
 @Repository("scheduleJdbc")
 public class MovieMovieScheduleAccessService implements MovieScheduleDAO {
+
+    private static final Logger log = LoggerFactory.getLogger(MovieMovieScheduleAccessService.class);
 
     private final JdbcTemplate jdbcTemplate;
 

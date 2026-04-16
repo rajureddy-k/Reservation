@@ -2,6 +2,8 @@ package com.movie.ticket.ticket;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -20,6 +22,7 @@ import java.util.Map;
 @RestController
 @RequestMapping(path = "api/v1/ticket")
 public class TicketController {
+    private static final Logger log = LoggerFactory.getLogger(TicketController.class);
 
     private final TicketService ticketService;
 

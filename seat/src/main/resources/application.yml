@@ -15,7 +15,7 @@ spring:
     allow-bean-definition-overriding: true
   datasource:
     password: password
-    url: jdbc:postgresql://localhost:5432/seats
+    url: jdbc:postgresql://ep-tiny-tooth-anffeeof-pooler.c-6.us-east-1.aws.neon.tech/neondb?user=neondb_owner&password=npg_sAtTcGe0nQj4&sslmode=require&channelBinding=require
     username: levantos
     driver-class-name: org.postgresql.Driver
   jpa:

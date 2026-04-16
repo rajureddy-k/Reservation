@@ -5,6 +5,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.math.BigDecimal;
 import java.sql.Date;
 import java.util.List;
@@ -13,6 +15,8 @@ import static org.assertj.core.api.Assertions.assertThat;
 
 @Slf4j
 class TicketAccessServiceTest  extends TicketAbstractDaoUnitTest {
+    private static final Logger log = LoggerFactory.getLogger(TicketAccessServiceTest.class);
+
     private TicketAccessService underTest;
 
     @BeforeEach
