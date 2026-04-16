@@ -16,7 +16,6 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
-
     <build>
         <plugins>
             <plugin>
@@ -26,19 +25,8 @@
         </plugins>
     </build>
 
-
     <profiles>
-        <profile>
-            <id>build-docker-image</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.google.cloud.tools</groupId>
-                        <artifactId>jib-maven-plugin</artifactId>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+        
     </profiles>
 
     <dependencies>

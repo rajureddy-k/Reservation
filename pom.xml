@@ -52,8 +52,6 @@
 		<image>levantosina/${project.artifactId}:${project.version}</image>
 	</properties>
 
-
-
 	<dependencyManagement>
 		<dependencies>
 			<dependency>
@@ -90,9 +88,6 @@
 		</dependencies>
 	</dependencyManagement>
 
-
-
-
 	<dependencies>
 		<dependency>
 			<groupId>org.projectlombok</groupId>
@@ -110,63 +105,10 @@
 		</dependency>
 	</dependencies>
 
-
-
-
-
 	<build>
 		<pluginManagement>
 			<plugins>
-				<plugin>
-					<groupId>org.springframework.boot</groupId>
-					<artifactId>spring-boot-maven-plugin</artifactId>
-					<version>${spring.boot.maven.plugin.version}</version>
-					<executions>
-						<execution>
-							<goals>
-								<goal>repackage</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
-
-				<plugin>
-					<groupId>com.google.cloud.tools</groupId>
-					<artifactId>jib-maven-plugin</artifactId>
-					<version>3.4.4</version>
-					<configuration>
-						<from>
-							<image>eclipse-temurin:21@sha256:5ad4efff3364b06c61578b267138359bcba92acc20dfd533f35b75c709a6f10b</image>
-							<platforms>
-								<platform>
-									<architecture>amd64</architecture>
-									<os>windows</os>
-								</platform>
-								<platform>
-									<architecture>arm64</architecture>
-									<os>linux</os>
-								</platform>
-								<platform>
-									<architecture>amd64</architecture>
-									<os>linux</os>
-								</platform>
-							</platforms>
-						</from>
-						<to>
-							<tags>
-								<tag>latest</tag>
-							</tags>
-						</to>
-					</configuration>
-					<executions>
-						<execution>
-							<phase>package</phase>
-							<goals>
-								<goal>build</goal>
-							</goals>
-						</execution>
-					</executions>
-				</plugin>
+				
 			</plugins>
 		</pluginManagement>
 

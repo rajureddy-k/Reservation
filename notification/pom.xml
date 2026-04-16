@@ -17,8 +17,6 @@
         <spring-boot.main-class>com.movie.notification.NotificationApp</spring-boot.main-class>
     </properties>
 
-
-
     <build>
         <plugins>
             <plugin>
@@ -28,38 +26,15 @@
         </plugins>
     </build>
 
-
     <profiles>
-        <profile>
-            <id>build-docker-image</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>com.google.cloud.tools</groupId>
-                        <artifactId>jib-maven-plugin</artifactId>
-                        <configuration>
-                            <skip>false</skip>
-                            <to>
-                                <image>levantosina/notification</image>
-                            </to>
-                            <container>
-                                <mainClass>${spring-boot.main-class}</mainClass>
-                            </container>
-                            <containerizingMode>packaged</containerizingMode>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
+        
     </profiles>
-
 
     <dependencies>
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
         </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
