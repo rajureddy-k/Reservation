@@ -41,9 +41,13 @@ spring:
     enabled: true
 
   rabbitmq:
-    addresses: localhost:5672
-    username: guest
-    password: guest
+    host: gerbil.rmq.cloudamqp.com
+    port: 5671
+    username: nowzcfua
+    password: FNcdkpb13Pl5H2XS2hIrGLorGCuXHJx0
+    virtual-host: nowzcfua
+    ssl:
+      enabled: true
 
 management:
   tracing:
@@ -66,6 +70,7 @@ eureka:
 
 logging:
   level:
+    org.springframework.amqp: DEBUG
     com:
       movie:
         client:

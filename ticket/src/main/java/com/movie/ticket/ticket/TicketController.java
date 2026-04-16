@@ -38,9 +38,6 @@ public class TicketController {
     @GetMapping("/myTickets")
     public ResponseEntity<?> getTicketsForAuthenticatedUser(){
         List<TicketDTO> ticketDTO = ticketService.getTicketsForAuthenticatedUser();
-        if (ticketDTO.isEmpty()) {
-            return ResponseEntity.ok(Map.of("message", "You don't have any tickets."));
-        }
         return ResponseEntity.ok(ticketDTO);
     }
 
