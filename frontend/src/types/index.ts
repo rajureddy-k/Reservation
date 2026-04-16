@@ -24,29 +24,27 @@ export interface Movie {
 }
 
 export interface Cinema {
-  id: number;
-  name: string;
-  location: string;
-  capacity: number;
+  cinemaId: number;
+  cinemaName: string;
+  cinemaLocation: string;
 }
 
 export interface Seat {
-  id: number;
-  cinemaId: number;
-  seatNumber: string;
-  rowNumber: string;
-  isAvailable: boolean;
+  seatId: number;
+  seatNumber: number;
+  row: string;
+  type: string;
+  isOccupied: boolean;
 }
 
 export interface Schedule {
-  id: number;
-  movieId: number;
-  cinemaId: number;
+  scheduleId: number;
+  date: string;
   startTime: string;
   endTime: string;
-  price: number;
-  movie?: Movie;
-  cinema?: Cinema;
+  availableSeats: number;
+  cinemaId: number;
+  movieId: number;
 }
 
 export interface Ticket {

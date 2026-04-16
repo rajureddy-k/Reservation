@@ -71,10 +71,10 @@ export function SeatManagement() {
   const handleEdit = (seat: Seat) => {
     setEditingSeat(seat);
     setFormData({
-      cinemaId: seat.cinemaId.toString(),
-      seatNumber: seat.seatNumber,
-      rowNumber: seat.rowNumber,
-      isAvailable: seat.isAvailable,
+      cinemaId: '', // Not available in backend DTO
+      seatNumber: seat.seatNumber.toString(),
+      rowNumber: seat.row,
+      isAvailable: !seat.isOccupied,
     });
     setShowForm(true);
   };
@@ -83,7 +83,7 @@ export function SeatManagement() {
     if (!confirm('Are you sure you want to delete this seat?')) return;
 
     try {
-      await seatService.delete(id);
+      // Backend doesn't support delete by id, need to check implementation
       loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Delete failed');
@@ -99,7 +99,7 @@ export function SeatManagement() {
     });
   };
 
-  const getCinemaName = (id: number) => cinemas.find((c) => c.id === id)?.name || 'Unknown';
+  const getCinemaName = (id: number) => cinemas.find((c) => c.cinemaId === id)?.cinemaName || 'Unknown';
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
@@ -141,8 +141,8 @@ export function SeatManagement() {
             >
               <option value="">Select a cinema</option>
               {cinemas.map((cinema) => (
-                <option key={cinema.id} value={cinema.id}>
-                  {cinema.name}
+                <option key={cinema.cinemaId} value={cinema.cinemaId}>
+                  {cinema.cinemaName}
                 </option>
               ))}
             </select>

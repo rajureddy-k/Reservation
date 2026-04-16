@@ -40,12 +40,12 @@ export function CinemaManagement() {
 
     try {
       const cinemaData = {
-        ...formData,
-        capacity: parseInt(formData.capacity),
+        cinemaName: formData.name,
+        cinemaLocation: formData.location,
       };
 
       if (editingCinema) {
-        await cinemaService.update(editingCinema.id, cinemaData);
+        await cinemaService.update(editingCinema.cinemaId, cinemaData);
       } else {
         await cinemaService.create(cinemaData);
       }
@@ -62,9 +62,9 @@ export function CinemaManagement() {
   const handleEdit = (cinema: Cinema) => {
     setEditingCinema(cinema);
     setFormData({
-      name: cinema.name,
-      location: cinema.location,
-      capacity: cinema.capacity.toString(),
+      name: cinema.cinemaName,
+      location: cinema.cinemaLocation,
+      capacity: '', // Backend doesn't provide capacity in DTO
     });
     setShowForm(true);
   };
@@ -159,13 +159,12 @@ export function CinemaManagement() {
       <div className="grid gap-4">
         {cinemas.map((cinema) => (
           <div
-            key={cinema.id}
+            key={cinema.cinemaId}
             className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between"
           >
             <div>
-              <h3 className="font-bold text-lg text-gray-900">{cinema.name}</h3>
-              <p className="text-gray-600">{cinema.location}</p>
-              <p className="text-sm text-gray-500 mt-1">Capacity: {cinema.capacity}</p>
+              <h3 className="font-bold text-lg text-gray-900">{cinema.cinemaName}</h3>
+              <p className="text-gray-600">{cinema.cinemaLocation}</p>
             </div>
             <div className="flex space-x-2">
               <button
@@ -175,7 +174,7 @@ export function CinemaManagement() {
                 <Edit className="w-5 h-5" />
               </button>
               <button
-                onClick={() => handleDelete(cinema.id)}
+                onClick={() => handleDelete(cinema.cinemaId)}
                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
               >
                 <Trash2 className="w-5 h-5" />

@@ -6,7 +6,7 @@ export const cinemaService = {
     return api.get<Cinema[]>('/api/v1/cinemas');
   },
 
-  create(cinema: Omit<Cinema, 'id'>): Promise<Cinema> {
+  create(cinema: Omit<Cinema, 'cinemaId'>): Promise<Cinema> {
     return api.post<Cinema>('/api/v1/cinemas', cinema);
   },
 

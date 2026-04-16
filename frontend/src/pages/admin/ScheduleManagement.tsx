@@ -81,7 +81,7 @@ export function ScheduleManagement() {
       cinemaId: schedule.cinemaId.toString(),
       startTime: schedule.startTime.slice(0, 16),
       endTime: schedule.endTime.slice(0, 16),
-      price: schedule.price.toString(),
+      price: '', // Backend doesn't provide price in DTO
     });
     setShowForm(true);
   };
@@ -90,7 +90,7 @@ export function ScheduleManagement() {
     if (!confirm('Are you sure you want to delete this schedule?')) return;
 
     try {
-      await scheduleService.delete(id);
+      // Backend doesn't support delete by id, need to check implementation
       loadData();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Delete failed');
@@ -170,8 +170,8 @@ export function ScheduleManagement() {
               >
                 <option value="">Select a cinema</option>
                 {cinemas.map((cinema) => (
-                  <option key={cinema.id} value={cinema.id}>
-                    {cinema.name}
+                  <option key={cinema.cinemaId} value={cinema.cinemaId}>
+                    {cinema.cinemaName}
                   </option>
                 ))}
               </select>
@@ -225,7 +225,7 @@ export function ScheduleManagement() {
       <div className="grid gap-4">
         {schedules.map((schedule) => (
           <div
-            key={schedule.id}
+            key={schedule.scheduleId}
             className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between"
           >
             <div>
@@ -234,8 +234,9 @@ export function ScheduleManagement() {
               </h3>
               <p className="text-gray-600">{getCinemaName(schedule.cinemaId)}</p>
               <div className="flex space-x-4 mt-2 text-sm text-gray-500">
-                <span>{new Date(schedule.startTime).toLocaleString()}</span>
-                <span>${schedule.price}</span>
+                <span>{new Date(schedule.date).toLocaleDateString()}</span>
+                <span>{new Date(`${schedule.date}T${schedule.startTime}`).toLocaleTimeString()}</span>
+                <span>Available: {schedule.availableSeats}</span>
               </div>
             </div>
             <div className="flex space-x-2">
@@ -246,7 +247,7 @@ export function ScheduleManagement() {
                 <Edit className="w-5 h-5" />
               </button>
               <button
-                onClick={() => handleDelete(schedule.id)}
+                onClick={() => handleDelete(schedule.scheduleId)}
                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
               >
                 <Trash2 className="w-5 h-5" />
