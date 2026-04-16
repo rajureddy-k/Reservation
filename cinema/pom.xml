@@ -12,13 +12,9 @@
 
     <name>cinema</name>
 
-
-
     <properties>
         <spring-boot.main-class>com.movie.cinema.CinemaApp</spring-boot.main-class>
     </properties>
-
-
 
     <dependencies>
         <dependency>
@@ -126,7 +122,6 @@
             <scope>test</scope>
         </dependency>
 
-
         <dependency>
             <groupId>com.movie.amqp</groupId>
             <artifactId>amqp</artifactId>
@@ -153,4 +148,8 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+    <profiles>
+        
+        </profiles>
+        </project>
 </project>

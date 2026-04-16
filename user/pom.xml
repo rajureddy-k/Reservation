@@ -13,15 +13,11 @@
     <name>user</name>
 
     <properties>
+        <java.version>21</java.version>        
         <java.version>21</java.version>
         <jsonWebToken.version>0.11.1</jsonWebToken.version>
         <spring-boot.main-class>com.movie.users.UserApp</spring-boot.main-class>
     </properties>
-
-
-
-
-
 
     <dependencies>
         <dependency>
@@ -122,7 +118,6 @@
             <scope>test</scope>
         </dependency>
 
-
         <dependency>
             <groupId>com.movie.resrvation</groupId>
             <artifactId>jwt</artifactId>
@@ -157,4 +152,8 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+    
+    </profiles>
 </project>

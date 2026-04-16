@@ -16,6 +16,7 @@
 
     <properties>
         <java.version>21</java.version>
+        <spring-boot.main-class>com.movie.ticket.TicketApp</spring-boot.main-class>        
         <spring-boot.main-class>com.movie.ticket.TicketApp</spring-boot.main-class>
     </properties>
 
@@ -136,7 +137,6 @@
             </exclusions>
         </dependency>
 
-
         <dependency>
             <groupId>com.movie.amqp</groupId>
             <artifactId>amqp</artifactId>
@@ -164,4 +164,9 @@
             <scope>compile</scope>
         </dependency>
     </dependencies>
+
+    <profiles>
+        
+    </profiles>
+
 </project>
