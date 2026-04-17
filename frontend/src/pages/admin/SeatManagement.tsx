@@ -17,7 +17,8 @@ export function SeatManagement() {
   const [formData, setFormData] = useState({
     cinemaId: '',
     seatNumber: '',
-    rowNumber: '',
+    row: '',
+    type: 'STANDARD',
     isAvailable: true,
   });
 
@@ -32,10 +33,12 @@ export function SeatManagement() {
         seatService.getAll(),
         cinemaService.getAll(),
       ]);
-      setSeats(seatsData);
-      setCinemas(cinemasData);
+      setSeats(Array.isArray(seatsData) ? seatsData : []);
+      setCinemas(Array.isArray(cinemasData) ? cinemasData : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
+      setSeats([]);
+      setCinemas([]);
     } finally {
       setIsLoading(false);
     }
@@ -48,13 +51,14 @@ export function SeatManagement() {
     try {
       const seatData = {
         cinemaId: parseInt(formData.cinemaId),
-        seatNumber: formData.seatNumber,
-        rowNumber: formData.rowNumber,
-        isAvailable: formData.isAvailable,
+        seatNumber: parseInt(formData.seatNumber),
+        row: formData.row,
+        type: formData.type,
+        isOccupied: !formData.isAvailable,
       };
 
       if (editingSeat) {
-        await seatService.update(editingSeat.id, seatData);
+        await seatService.update(editingSeat.seatId, seatData);
       } else {
         await seatService.create(seatData);
       }
@@ -71,9 +75,10 @@ export function SeatManagement() {
   const handleEdit = (seat: Seat) => {
     setEditingSeat(seat);
     setFormData({
-      cinemaId: '', // Not available in backend DTO
+      cinemaId: seat.cinemaId.toString(),
       seatNumber: seat.seatNumber.toString(),
-      rowNumber: seat.row,
+      row: seat.row,
+      type: seat.type,
       isAvailable: !seat.isOccupied,
     });
     setShowForm(true);
@@ -94,7 +99,8 @@ export function SeatManagement() {
     setFormData({
       cinemaId: '',
       seatNumber: '',
-      rowNumber: '',
+      row: '',
+      type: 'STANDARD',
       isAvailable: true,
     });
   };
@@ -150,9 +156,9 @@ export function SeatManagement() {
 
           <div className="grid md:grid-cols-2 gap-4">
             <Input
-              label="Row Number"
-              value={formData.rowNumber}
-              onChange={(e) => setFormData({ ...formData, rowNumber: e.target.value })}
+              label="Row"
+              value={formData.row}
+              onChange={(e) => setFormData({ ...formData, row: e.target.value })}
               required
             />
             <Input
@@ -161,6 +167,20 @@ export function SeatManagement() {
               onChange={(e) => setFormData({ ...formData, seatNumber: e.target.value })}
               required
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Seat Type</label>
+            <select
+              value={formData.type}
+              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
+              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              required
+            >
+              <option value="STANDARD">Standard</option>
+              <option value="VIP">VIP</option>
+              <option value="DISABLED">Disabled</option>
+            </select>
           </div>
 
           <div className="flex items-center space-x-2">
@@ -198,23 +218,23 @@ export function SeatManagement() {
       <div className="grid gap-4">
         {seats.map((seat) => (
           <div
-            key={seat.id}
+            key={seat.seatId}
             className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between"
           >
             <div>
               <h3 className="font-bold text-lg text-gray-900">
-                Seat {seat.rowNumber}
+                Seat {seat.row}
                 {seat.seatNumber}
               </h3>
               <p className="text-gray-600">{getCinemaName(seat.cinemaId)}</p>
               <span
                 className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium ${
-                  seat.isAvailable
+                  !seat.isOccupied
                     ? 'bg-green-100 text-green-700'
                     : 'bg-red-100 text-red-700'
                 }`}
               >
-                {seat.isAvailable ? 'Available' : 'Occupied'}
+                {!seat.isOccupied ? 'Available' : 'Occupied'}
               </span>
             </div>
             <div className="flex space-x-2">
@@ -225,7 +245,7 @@ export function SeatManagement() {
                 <Edit className="w-5 h-5" />
               </button>
               <button
-                onClick={() => handleDelete(seat.id)}
+                onClick={() => handleDelete(seat.seatId)}
                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
               >
                 <Trash2 className="w-5 h-5" />

@@ -127,7 +127,7 @@ export function Landing({ onGetStarted, onSelectMovie }: LandingProps) {
               </div>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {movies.slice(0, 4).map((movie) => (
-                  <MovieCard key={movie.id} movie={movie} onSelect={onSelectMovie} />
+                  <MovieCard key={movie.movieId} movie={movie} onSelect={onSelectMovie} />
                 ))}
               </div>
             </div>

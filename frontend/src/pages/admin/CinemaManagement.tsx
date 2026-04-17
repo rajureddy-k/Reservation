@@ -26,9 +26,10 @@ export function CinemaManagement() {
     try {
       setIsLoading(true);
       const data = await cinemaService.getAll();
-      setCinemas(data);
+      setCinemas(Array.isArray(data) ? data : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load cinemas');
+      setCinemas([]);
     } finally {
       setIsLoading(false);
     }

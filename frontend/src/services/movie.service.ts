@@ -11,20 +11,19 @@ interface BackendMovie {
 }
 
 const mapMovie = (backendMovie: BackendMovie): Movie => ({
-  id: backendMovie.movieId,
-  title: backendMovie.movieName,
+  movieId: backendMovie.movieId,
+  movieName: backendMovie.movieName,
   genre: backendMovie.genre,
   description: backendMovie.description,
-  releaseDate: `${backendMovie.year}-01-01`,
+  year: backendMovie.year,
   country: backendMovie.country,
-  duration: undefined,
   imageUrl: undefined,
   rating: undefined,
 });
 
-const toBackendMovie = (movie: Omit<Movie, 'id'>) => ({
-  movieName: movie.title,
-  year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : undefined,
+const toBackendMovie = (movie: Omit<Movie, 'movieId'>) => ({
+  movieName: movie.movieName,
+  year: movie.year,
   country: movie.country || 'Unknown',
   genre: movie.genre,
   description: movie.description,
@@ -41,20 +40,20 @@ export const movieService = {
     return mapMovie(backendMovie);
   },
 
-  async create(movie: Omit<Movie, 'id'>): Promise<void> {
-    const backendMovie = toBackendMovie(movie as Omit<Movie, 'id'>);
-    return api.post<void>('/api/v1/movies', backendMovie);
+  async create(movie: Omit<Movie, 'movieId'>): Promise<Movie> {
+    const backendMovie = toBackendMovie(movie);
+    return api.post<Movie>('/api/v1/movies', backendMovie);
   },
 
-  async update(id: number, movie: Partial<Movie>): Promise<void> {
+  async update(id: number, movie: Partial<Movie>): Promise<Movie> {
     const backendUpdate = {
-      movieName: movie.title,
-      year: movie.releaseDate ? new Date(movie.releaseDate).getFullYear() : undefined,
+      movieName: movie.movieName,
+      year: movie.year,
       country: movie.country,
       genre: movie.genre,
       description: movie.description,
     };
-    return api.put<void>(`/api/v1/movies/${id}`, backendUpdate);
+    return api.put<Movie>(`/api/v1/movies/${id}`, backendUpdate);
   },
 
   delete(id: number): Promise<void> {

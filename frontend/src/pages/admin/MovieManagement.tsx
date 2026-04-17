@@ -13,12 +13,11 @@ export function MovieManagement() {
   const [error, setError] = useState('');
 
   const [formData, setFormData] = useState({
-    title: '',
+    movieName: '',
     description: '',
     genre: '',
-    duration: '',
-    releaseDate: '',
-    imageUrl: '',
+    year: new Date().getFullYear().toString(),
+    country: '',
   });
 
   useEffect(() => {
@@ -43,12 +42,15 @@ export function MovieManagement() {
 
     try {
       const movieData = {
-        ...formData,
-        duration: parseInt(formData.duration),
+        movieName: formData.movieName,
+        description: formData.description,
+        genre: formData.genre,
+        year: parseInt(formData.year),
+        country: formData.country,
       };
 
       if (editingMovie) {
-        await movieService.update(editingMovie.id, movieData);
+        await movieService.update(editingMovie.movieId, movieData);
       } else {
         await movieService.create(movieData);
       }
@@ -65,12 +67,11 @@ export function MovieManagement() {
   const handleEdit = (movie: Movie) => {
     setEditingMovie(movie);
     setFormData({
-      title: movie.title,
+      movieName: movie.movieName,
       description: movie.description,
       genre: movie.genre,
-      duration: movie.duration.toString(),
-      releaseDate: movie.releaseDate,
-      imageUrl: movie.imageUrl || '',
+      year: movie.year.toString(),
+      country: movie.country || '',
     });
     setShowForm(true);
   };
@@ -88,12 +89,11 @@ export function MovieManagement() {
 
   const resetForm = () => {
     setFormData({
-      title: '',
+      movieName: '',
       description: '',
       genre: '',
-      duration: '',
-      releaseDate: '',
-      imageUrl: '',
+      year: new Date().getFullYear().toString(),
+      country: '',
     });
   };
 
@@ -128,8 +128,8 @@ export function MovieManagement() {
           <div className="grid md:grid-cols-2 gap-4">
             <Input
               label="Title"
-              value={formData.title}
-              onChange={(e) => setFormData({ ...formData, title: e.target.value })}
+              value={formData.movieName}
+              onChange={(e) => setFormData({ ...formData, movieName: e.target.value })}
               required
             />
             <Input
@@ -147,25 +147,19 @@ export function MovieManagement() {
             required
           />
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid md:grid-cols-2 gap-4">
             <Input
-              label="Duration (minutes)"
+              label="Year"
               type="number"
-              value={formData.duration}
-              onChange={(e) => setFormData({ ...formData, duration: e.target.value })}
+              value={formData.year}
+              onChange={(e) => setFormData({ ...formData, year: e.target.value })}
               required
             />
             <Input
-              label="Release Date"
-              type="date"
-              value={formData.releaseDate}
-              onChange={(e) => setFormData({ ...formData, releaseDate: e.target.value })}
+              label="Country"
+              value={formData.country}
+              onChange={(e) => setFormData({ ...formData, country: e.target.value })}
               required
-            />
-            <Input
-              label="Image URL"
-              value={formData.imageUrl}
-              onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
             />
           </div>
 
@@ -189,16 +183,16 @@ export function MovieManagement() {
       <div className="grid gap-4">
         {movies.map((movie) => (
           <div
-            key={movie.id}
+            key={movie.movieId}
             className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between"
           >
             <div>
-              <h3 className="font-bold text-lg text-gray-900">{movie.title}</h3>
+              <h3 className="font-bold text-lg text-gray-900">{movie.movieName}</h3>
               <p className="text-gray-600 text-sm">{movie.description}</p>
               <div className="flex space-x-4 mt-2 text-sm text-gray-500">
                 <span>{movie.genre}</span>
-                <span>{movie.duration} min</span>
-                <span>{new Date(movie.releaseDate).getFullYear()}</span>
+                <span>{movie.year}</span>
+                <span>{movie.country}</span>
               </div>
             </div>
             <div className="flex space-x-2">
@@ -209,7 +203,7 @@ export function MovieManagement() {
                 <Edit className="w-5 h-5" />
               </button>
               <button
-                onClick={() => handleDelete(movie.id)}
+                onClick={() => handleDelete(movie.movieId)}
                 className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
               >
                 <Trash2 className="w-5 h-5" />

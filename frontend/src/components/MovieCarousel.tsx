@@ -45,13 +45,13 @@ export function MovieCarousel({ movies, onSelectMovie }: MovieCarouselProps) {
         {currentMovie.imageUrl ? (
           <img
             src={currentMovie.imageUrl}
-            alt={currentMovie.title}
+            alt={currentMovie.movieName}
             className="w-full h-full object-cover"
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-blue-600 to-blue-900 flex items-center justify-center">
             <div className="text-center text-white">
-              <p className="text-2xl font-bold">{currentMovie.title}</p>
+              <p className="text-2xl font-bold">{currentMovie.movieName}</p>
               <p className="text-sm mt-2">No image available</p>
             </div>
           </div>
@@ -62,7 +62,7 @@ export function MovieCarousel({ movies, onSelectMovie }: MovieCarouselProps) {
 
       <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12">
         <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-          {currentMovie.title}
+          {currentMovie.movieName}
         </h2>
 
         <div className="flex flex-wrap gap-4 mb-6 items-center">

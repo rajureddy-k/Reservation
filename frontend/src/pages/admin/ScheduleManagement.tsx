@@ -36,11 +36,14 @@ export function ScheduleManagement() {
         movieService.getAll(),
         cinemaService.getAll(),
       ]);
-      setSchedules(schedulesData);
-      setMovies(moviesData);
-      setCinemas(cinemasData);
+      setSchedules(Array.isArray(schedulesData) ? schedulesData : []);
+      setMovies(Array.isArray(moviesData) ? moviesData : []);
+      setCinemas(Array.isArray(cinemasData) ? cinemasData : []);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
+      setSchedules([]);
+      setMovies([]);
+      setCinemas([]);
     } finally {
       setIsLoading(false);
     }
@@ -56,11 +59,11 @@ export function ScheduleManagement() {
         cinemaId: parseInt(formData.cinemaId),
         startTime: formData.startTime,
         endTime: formData.endTime,
-        price: parseFloat(formData.price),
+        date: new Date(formData.startTime).toISOString().split('T')[0],
       };
 
       if (editingSchedule) {
-        await scheduleService.update(editingSchedule.id, scheduleData);
+        await scheduleService.update(editingSchedule.scheduleId, scheduleData);
       } else {
         await scheduleService.create(scheduleData);
       }
@@ -107,8 +110,11 @@ export function ScheduleManagement() {
     });
   };
 
-  const getMovieTitle = (id: number) => movies.find((m) => m.id === id)?.title || 'Unknown';
-  const getCinemaName = (id: number) => cinemas.find((c) => c.id === id)?.name || 'Unknown';
+  const getMovieTitle = (id: number) => movies.find((m) => m.movieId === id)?.movieName || 'Unknown';
+  const getCinemaName = (id: number) => {
+    const cinema = cinemas.find((c) => c.cinemaId === id);
+    return cinema?.cinemaName || 'Unknown';
+  };
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
@@ -151,8 +157,8 @@ export function ScheduleManagement() {
               >
                 <option value="">Select a movie</option>
                 {movies.map((movie) => (
-                  <option key={movie.id} value={movie.id}>
-                    {movie.title}
+                  <option key={movie.movieId} value={movie.movieId}>
+                    {movie.movieName}
                   </option>
                 ))}
               </select>
@@ -194,12 +200,11 @@ export function ScheduleManagement() {
               required
             />
             <Input
-              label="Price"
+              label="Price (optional)"
               type="number"
               step="0.01"
               value={formData.price}
               onChange={(e) => setFormData({ ...formData, price: e.target.value })}
-              required
             />
           </div>
 

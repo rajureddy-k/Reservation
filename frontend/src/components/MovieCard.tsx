@@ -16,7 +16,7 @@ export function MovieCard({ movie, onSelect }: MovieCardProps) {
         {movie.imageUrl ? (
           <img
             src={movie.imageUrl}
-            alt={movie.title}
+            alt={movie.movieName}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300"
           />
         ) : (
@@ -49,7 +49,7 @@ export function MovieCard({ movie, onSelect }: MovieCardProps) {
 
       <div className="space-y-2">
         <h3 className="font-bold text-lg text-gray-900 line-clamp-2 group-hover:text-blue-600 transition-colors">
-          {movie.title}
+          {movie.movieName}
         </h3>
 
         <div className="flex items-center space-x-2">

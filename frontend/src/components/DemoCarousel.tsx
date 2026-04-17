@@ -86,7 +86,7 @@ export function DemoCarousel({ onExplore }: DemoCarouselProps) {
           <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-white z-10">
               <div className="text-8xl font-bold opacity-30 mb-4">🎬</div>
-              <p className="text-2xl font-bold">{currentMovie.title}</p>
+              <p className="text-2xl font-bold">{currentMovie.movieName}</p>
             </div>
           </div>
         </div>
@@ -96,7 +96,7 @@ export function DemoCarousel({ onExplore }: DemoCarouselProps) {
 
       <div className="absolute inset-0 flex flex-col justify-end p-8 md:p-12">
         <h2 className="text-4xl md:text-5xl font-bold text-white mb-4">
-          {currentMovie.title}
+          {currentMovie.movieName}
         </h2>
 
         <div className="flex flex-wrap gap-4 mb-6 items-center">

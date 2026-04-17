@@ -12,12 +12,11 @@ export interface AuthResponse {
 }
 
 export interface Movie {
-  id: number;
-  title: string;
+  movieId: number;
+  movieName: string;
   description: string;
   genre: string;
-  duration?: number;
-  releaseDate: string;
+  year: number;
   country?: string;
   imageUrl?: string;
   rating?: number;
@@ -34,6 +33,7 @@ export interface Seat {
   seatNumber: number;
   row: string;
   type: string;
+  cinemaId: number;
   isOccupied: boolean;
 }
 
@@ -61,4 +61,6 @@ export interface Ticket {
 export interface CreateTicketRequest {
   scheduleId: number;
   seatId: number;
+  movieId: number;
+  cinemaId: number;
 }

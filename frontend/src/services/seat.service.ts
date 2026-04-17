@@ -6,7 +6,11 @@ export const seatService = {
     return api.get<Seat[]>('/api/v1/seats');
   },
 
-  create(seat: Omit<Seat, 'id'>): Promise<Seat> {
+  getByCinema(cinemaId: number): Promise<Seat[]> {
+    return api.get<Seat[]>(`/api/v1/seats/cinema/${cinemaId}`);
+  },
+
+  create(seat: Omit<Seat, 'seatId'>): Promise<Seat> {
     return api.post<Seat>('/api/v1/seats', seat);
   },
 

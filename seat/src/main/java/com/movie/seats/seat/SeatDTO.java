@@ -9,6 +9,7 @@ public record SeatDTO(
         Integer seatNumber,
         String row,
         String type,
+        Long cinemaId,
         Boolean isOccupied
 
 ) { }

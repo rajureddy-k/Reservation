@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock, DollarSign } from 'lucide-react';
-import { Movie, Schedule, Seat } from '../types';
+import { ArrowLeft, MapPin, Calendar, Clock } from 'lucide-react';
+import { Movie, Schedule, Seat, Cinema } from '../types';
 import { scheduleService } from '../services/schedule.service';
 import { seatService } from '../services/seat.service';
+import { cinemaService } from '../services/cinema.service';
 import { ticketService } from '../services/ticket.service';
 import { Button } from '../components/Button';
 
@@ -15,6 +16,7 @@ interface BookingProps {
 export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
   const [schedules, setSchedules] = useState<Schedule[]>([]);
   const [seats, setSeats] = useState<Seat[]>([]);
+  const [cinemas, setCinemas] = useState<Cinema[]>([]);
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [selectedSeat, setSelectedSeat] = useState<Seat | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -28,18 +30,28 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [schedulesData, seatsData] = await Promise.all([
+      const [schedulesData, cinemasData] = await Promise.all([
         scheduleService.getAll(),
-        seatService.getAll(),
+        cinemaService.getAll(),
       ]);
 
-      const movieSchedules = schedulesData.filter((s) => s.movieId === movie.id);
+      const movieSchedules = schedulesData.filter((s) => s.movieId === movie.movieId);
       setSchedules(movieSchedules);
-      setSeats(seatsData);
+      setCinemas(cinemasData);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load booking data');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadSeatsForCinema = async (cinemaId: number) => {
+    try {
+      const seatsData = await seatService.getByCinema(cinemaId);
+      setSeats(seatsData);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to load seats');
+      setSeats([]);
     }
   };
 
@@ -49,8 +61,10 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
     try {
       setIsBooking(true);
       await ticketService.create({
-        scheduleId: selectedSchedule.id,
-        seatId: selectedSeat.id,
+        scheduleId: selectedSchedule.scheduleId,
+        seatId: selectedSeat.seatId,
+        movieId: movie.movieId,
+        cinemaId: selectedSchedule.cinemaId,
       });
       onBookingSuccess();
     } catch (err) {
@@ -61,8 +75,10 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
   };
 
   const availableSeats = selectedSchedule
-    ? seats.filter((s) => s.cinemaId === selectedSchedule.cinemaId && s.isAvailable)
+    ? seats.filter((s) => !s.isOccupied)
     : [];
+
+  const getCinemaName = (id: number) => cinemas.find((cinema) => cinema.cinemaId === id)?.cinemaName || `Cinema ${id}`;
 
   if (isLoading) {
     return (
@@ -86,7 +102,7 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
       </button>
 
       <div className="bg-white rounded-xl shadow-lg p-6 mb-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">{movie.title}</h1>
+        <h1 className="text-3xl font-bold text-gray-900 mb-2">{movie.movieName}</h1>
         <p className="text-gray-600">{movie.description}</p>
       </div>
 
@@ -104,48 +120,52 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
             <p className="text-gray-500">No showtimes available</p>
           ) : (
             <div className="space-y-3">
-              {schedules.map((schedule) => (
-                <button
-                  key={schedule.id}
-                  onClick={() => {
-                    setSelectedSchedule(schedule);
-                    setSelectedSeat(null);
-                  }}
-                  className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
-                    selectedSchedule?.id === schedule.id
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 hover:border-blue-300'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="space-y-2">
-                      <div className="flex items-center space-x-2 text-gray-700">
-                        <Calendar className="w-4 h-4" />
-                        <span className="font-medium">
-                          {new Date(schedule.startTime).toLocaleDateString()}
-                        </span>
+              {schedules.map((schedule) => {
+                const scheduleDateTime = new Date(`${schedule.date}T${schedule.startTime}`);
+
+                return (
+                  <button
+                    key={schedule.scheduleId}
+                    onClick={() => {
+                      setSelectedSchedule(schedule);
+                      setSelectedSeat(null);
+                      loadSeatsForCinema(schedule.cinemaId);
+                    }}
+                    className={`w-full p-4 rounded-lg border-2 transition-all text-left ${
+                      selectedSchedule?.scheduleId === schedule.scheduleId
+                        ? 'border-blue-600 bg-blue-50'
+                        : 'border-gray-200 hover:border-blue-300'
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-2">
+                        <div className="flex items-center space-x-2 text-gray-700">
+                          <Calendar className="w-4 h-4" />
+                          <span className="font-medium">
+                            {scheduleDateTime.toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-700">
+                          <Clock className="w-4 h-4" />
+                          <span>
+                            {scheduleDateTime.toLocaleTimeString([], {
+                              hour: '2-digit',
+                              minute: '2-digit',
+                            })}
+                          </span>
+                        </div>
+                        <div className="flex items-center space-x-2 text-gray-700">
+                          <MapPin className="w-4 h-4" />
+                          <span>{getCinemaName(schedule.cinemaId)}</span>
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2 text-gray-700">
-                        <Clock className="w-4 h-4" />
-                        <span>
-                          {new Date(schedule.startTime).toLocaleTimeString([], {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
-                        </span>
-                      </div>
-                      <div className="flex items-center space-x-2 text-gray-700">
-                        <MapPin className="w-4 h-4" />
-                        <span>Cinema {schedule.cinemaId}</span>
+                      <div className="text-gray-500 text-sm font-medium">
+                        {schedule.availableSeats} seats left
                       </div>
                     </div>
-                    <div className="flex items-center space-x-1 text-blue-600 font-bold">
-                      <DollarSign className="w-5 h-5" />
-                      <span>{schedule.price}</span>
-                    </div>
-                  </div>
-                </button>
-              ))}
+                  </button>
+                );
+              })}
             </div>
           )}
         </div>
@@ -156,21 +176,25 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
           {!selectedSchedule ? (
             <p className="text-gray-500">Please select a showtime first</p>
           ) : availableSeats.length === 0 ? (
-            <p className="text-gray-500">No seats available for this showtime</p>
+            <p className="text-gray-500">
+              {selectedSchedule?.availableSeats > 0
+                ? `No available seat inventory loaded for ${getCinemaName(selectedSchedule.cinemaId)} yet, but ${selectedSchedule.availableSeats} seats remain.`
+                : 'No seats available for this showtime'}
+            </p>
           ) : (
             <div className="space-y-4">
               <div className="grid grid-cols-4 gap-3">
                 {availableSeats.map((seat) => (
                   <button
-                    key={seat.id}
+                    key={seat.seatId}
                     onClick={() => setSelectedSeat(seat)}
                     className={`p-3 rounded-lg border-2 transition-all font-medium ${
-                      selectedSeat?.id === seat.id
+                      selectedSeat?.seatId === seat.seatId
                         ? 'border-blue-600 bg-blue-50 text-blue-600'
                         : 'border-gray-200 hover:border-blue-300 text-gray-700'
                     }`}
                   >
-                    {seat.rowNumber}
+                    {seat.row}
                     {seat.seatNumber}
                   </button>
                 ))}
@@ -182,13 +206,23 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
                     <div className="flex justify-between text-gray-700">
                       <span>Seat:</span>
                       <span className="font-medium">
-                        {selectedSeat.rowNumber}
+                        {selectedSeat.row}
                         {selectedSeat.seatNumber}
                       </span>
                     </div>
                     <div className="flex justify-between text-gray-700">
-                      <span>Price:</span>
-                      <span className="font-medium">${selectedSchedule.price}</span>
+                      <span>Showtime:</span>
+                      <span className="font-medium">
+                        {new Date(`${selectedSchedule.date}T${selectedSchedule.startTime}`).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                        {' - '}
+                        {new Date(`${selectedSchedule.date}T${selectedSchedule.endTime}`).toLocaleTimeString([], {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}
+                      </span>
                     </div>
                   </div>
                   <Button
