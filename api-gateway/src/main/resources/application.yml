@@ -1,11 +1,23 @@
 server:
-  port: 8083
+  port: 8080
 
 spring:
   application:
     name: api-gateway
+
   cloud:
     gateway:
+      globalcors:
+        corsConfigurations:
+          '[/**]':
+            allowedOriginPatterns: "*"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            allowCredentials: true
+
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+
       routes:
         - id: user
           uri: lb://USER
@@ -26,24 +38,26 @@ spring:
           uri: lb://MOVIE
           predicates:
             - Path=/api/v1/movies/**
+
         - id: cinema
           uri: lb://CINEMA
           predicates:
             - Path=/api/v1/cinemas/**
+
         - id: seat
           uri: lb://SEAT
           predicates:
             - Path=/api/v1/seats/**
+
         - id: schedule
           uri: lb://SCHEDULE
           predicates:
             - Path=/api/v1/schedules/**
+
         - id: ticket
           uri: lb://TICKET
           predicates:
             - Path=/api/v1/ticket/**
-
-
 
 management:
   tracing:

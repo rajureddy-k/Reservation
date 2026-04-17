@@ -20,7 +20,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
     properties:
       hibernate:
         jdbc:
@@ -39,7 +39,13 @@ spring:
       baseline-on-migrate: true
 
   rabbitmq:
-    addresses: localhost:5672
+    host: gerbil.rmq.cloudamqp.com
+    port: 5671
+    username: nowzcfua
+    password: FNcdkpb13Pl5H2XS2hIrGLorGCuXHJx0
+    virtual-host: nowzcfua
+    ssl:
+      enabled: true
 
 management:
   tracing:
