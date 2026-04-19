@@ -6,7 +6,6 @@ import com.movie.payment.dto.PaymentResponse;
 import com.stripe.Stripe;
 import com.stripe.exception.StripeException;
 import com.stripe.model.Charge;
-import com.stripe.model.Token;
 import org.springframework.stereotype.Service;
 
 import java.util.HashMap;
@@ -32,21 +31,13 @@ public class PaymentService {
 
         Stripe.apiKey = stripeConfig.getApiKey();
 
-        Map<String, Object> card = new HashMap<>();
-        card.put("number", request.getCardNumber());
-        card.put("exp_month", request.getExpMonth());
-        card.put("exp_year", request.getExpYear());
-        card.put("cvc", request.getCvc());
-
-        Map<String, Object> tokenParams = new HashMap<>();
-        tokenParams.put("card", card);
-        Token cardToken = Token.create(tokenParams);
+        String source = resolvePaymentSource(request.getCardNumber(), stripeConfig.getApiKey());
 
         Map<String, Object> chargeParams = new HashMap<>();
         chargeParams.put("amount", request.getAmount());
         chargeParams.put("currency", request.getCurrency());
         chargeParams.put("description", request.getDescription());
-        chargeParams.put("source", cardToken.getId());
+        chargeParams.put("source", source);
 
         Charge charge = Charge.create(chargeParams);
 
@@ -56,6 +47,21 @@ public class PaymentService {
                 charge.getAmount(),
                 charge.getCurrency(),
                 "Stripe payment " + charge.getStatus()
+        );
+
+    }
+
+    private String resolvePaymentSource(String cardNumberOrToken, String apiKey) {
+        if (cardNumberOrToken != null && cardNumberOrToken.startsWith("tok_")) {
+            return cardNumberOrToken;
+        }
+
+        if (apiKey != null && apiKey.startsWith("sk_test_")) {
+            return "tok_visa";
+        }
+
+        throw new IllegalStateException(
+                "Stripe raw card data is disabled. Use a Stripe token (tok_...) or set stripe.mock=true for mock payments."
         );
     }
 
