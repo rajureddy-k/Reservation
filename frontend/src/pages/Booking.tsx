@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
-import { ArrowLeft, MapPin, Calendar, Clock } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { Movie, Schedule, SeatAvailability, Cinema } from '../types';
 import { scheduleService } from '../services/schedule.service';
 import { seatService } from '../services/seat.service';
 import { cinemaService } from '../services/cinema.service';
+import { paymentService } from '../services/payment.service';
 import { ticketService } from '../services/ticket.service';
 import { Button } from '../components/Button';
+import { CheckoutModal } from '../components/CheckoutModal';
 
 interface BookingProps {
   movie: Movie;
@@ -20,8 +22,11 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
   const [selectedSchedule, setSelectedSchedule] = useState<Schedule | null>(null);
   const [selectedSeat, setSelectedSeat] = useState<SeatAvailability | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isBooking, setIsBooking] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
   const [error, setError] = useState('');
+  const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
+  const [paymentError, setPaymentError] = useState('');
+  const [seatPrice, setSeatPrice] = useState(0);
 
   useEffect(() => {
     loadData();
@@ -55,28 +60,55 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
     }
   };
 
-  const handleBooking = async () => {
+  const handlePaymentSuccess = async (cardDetails: {
+    cardNumber: string;
+    expMonth: number;
+    expYear: number;
+    cvc: string;
+  }) => {
     if (!selectedSchedule || !selectedSeat) return;
 
     try {
-      setIsBooking(true);
-      await ticketService.create({
+      setIsProcessing(true);
+      setPaymentError('');
+      
+      await paymentService.createTicketWithPayment({
         scheduleId: selectedSchedule.scheduleId,
         seatId: selectedSeat.seatId,
         movieId: movie.movieId,
         cinemaId: selectedSchedule.cinemaId,
+        ...cardDetails,
       });
-      onBookingSuccess();
+
+      setTimeout(() => {
+        setCheckoutModalOpen(false);
+        onBookingSuccess();
+      }, 3000);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Booking failed');
+      setPaymentError(err instanceof Error ? err.message : 'Payment failed. Please try again.');
     } finally {
-      setIsBooking(false);
+      setIsProcessing(false);
     }
   };
 
-  const availableSeats = selectedSchedule
-    ? seats.filter((s) => !s.isReserved)
-    : [];
+  const handleOpenCheckout = async () => {
+    if (!selectedSchedule || !selectedSeat) return;
+
+    try {
+      const normalizedType = selectedSeat.type?.toLowerCase() ?? 'standard';
+      const price = normalizedType === 'vip' ? 15 : 10;
+      setSeatPrice(Math.round(price * 100)); // Convert to cents
+      setCheckoutModalOpen(true);
+      setPaymentError('');
+    } catch (err) {
+      setError('Failed to load seat price');
+    }
+  };
+
+  const handleCloseCheckout = () => {
+    setCheckoutModalOpen(false);
+    setPaymentError('');
+  };
 
   const getCinemaName = (id: number) => cinemas.find((cinema) => cinema.cinemaId === id)?.cinemaName || `Cinema ${id}`;
 
@@ -116,6 +148,8 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
     }
     return 'w-full py-3 rounded-lg border-2 border-green-300 bg-green-50 text-green-700 hover:border-green-500';
   };
+
+  const selectedCinema = selectedSchedule ? cinemas.find(c => c.cinemaId === selectedSchedule.cinemaId) : null;
 
   return (
     <div className="max-w-5xl mx-auto px-4 py-8">
@@ -273,8 +307,8 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
                     </div>
                   </div>
                   <Button
-                    onClick={handleBooking}
-                    isLoading={isBooking}
+                    onClick={handleOpenCheckout}
+                    isLoading={isProcessing}
                     className="w-full"
                   >
                     Confirm Booking
@@ -285,6 +319,19 @@ export function Booking({ movie, onBack, onBookingSuccess }: BookingProps) {
           )}
         </div>
       </div>
+
+      <CheckoutModal
+        isOpen={checkoutModalOpen}
+        movie={movie}
+        cinema={selectedCinema ?? { cinemaId: 0, cinemaName: '', cinemaLocation: '' }}
+        schedule={selectedSchedule ?? { scheduleId: 0, movieId: 0, cinemaId: 0, date: '', startTime: '', endTime: '', availableSeats: 0 }}
+        selectedSeat={selectedSeat ?? { seatId: 0, row: '', seatNumber: 0, isReserved: false, type: 'standard', cinemaId: 0 }}
+        seatPrice={seatPrice}
+        onClose={handleCloseCheckout}
+        onPaymentSuccess={handlePaymentSuccess}
+        isProcessing={isProcessing}
+        error={paymentError}
+      />
     </div>
   );
 }

@@ -4,6 +4,7 @@ package com.movie.ticket.ticket;
 import com.movie.amqp.RabbitMqMessageProducer;
 import com.movie.client.movieClient.MovieClient;
 import com.movie.client.notification.NotificationRequest;
+import com.movie.client.paymentClient.PaymentClient;
 import com.movie.client.scheduleClient.ScheduleClient;
 import com.movie.client.seatClient.SeatClient;
 import com.movie.client.userClient.UserClient;
@@ -54,8 +55,10 @@ public class TicketService {
 
     private final ScheduleClient scheduleClient;
 
+    private final PaymentClient paymentClient;
 
-    public TicketService(@Qualifier("ticketJdbc") TicketDAO ticketDAO, TicketDTOMapper ticketDTOMapper, RabbitMqMessageProducer rabbitMqMessageProducer, UserClient userClient, MovieClient movieClient, SeatClient seatClient, ScheduleClient scheduleClient) {
+
+    public TicketService(@Qualifier("ticketJdbc") TicketDAO ticketDAO, TicketDTOMapper ticketDTOMapper, RabbitMqMessageProducer rabbitMqMessageProducer, UserClient userClient, MovieClient movieClient, SeatClient seatClient, ScheduleClient scheduleClient, PaymentClient paymentClient) {
         this.ticketDAO = ticketDAO;
         this.ticketDTOMapper = ticketDTOMapper;
         this.rabbitMqMessageProducer = rabbitMqMessageProducer;
@@ -63,6 +66,7 @@ public class TicketService {
         this.movieClient = movieClient;
         this.seatClient = seatClient;
         this.scheduleClient = scheduleClient;
+        this.paymentClient = paymentClient;
     }
 
 
@@ -168,9 +172,9 @@ public class TicketService {
 
         // validation
         if (scheduleDTO.availableSeats() <= 0) {
-            List<Long> reservedSeatIds = Optional.ofNullable(ticketClient.getReservedSeatIds(ticketRegistrationRequest.scheduleId()))
+            List<Long> reservedSeatIds = Optional.ofNullable(getReservedSeatIdsBySchedule(ticketRegistrationRequest.scheduleId()))
                     .orElse(Collections.emptyList());
-            int totalSeatCount = seatClient.getTotalSeatsByCinemaId(scheduleDTO.cinemaId());
+            int totalSeatCount = seatClient.getTotalSeatsByCinemaId(scheduleDTO.cinemaId()).totalSeats();
             int actualAvailableSeats = totalSeatCount - reservedSeatIds.size();
 
             if (actualAvailableSeats <= 0) {
@@ -222,6 +226,151 @@ public class TicketService {
                 "internal.notification.routing-key"
         );
     }
+
+    public void createTicketWithPayment(TicketWithPaymentRequest ticketWithPaymentRequest) {
+        Ticket ticket = new Ticket();
+
+        // Get the current auth_user
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        if (authentication == null || !authentication.isAuthenticated()) {
+            throw new HandleRuntimeException("Unauthorized user. Please login before proceeding.");
+        }
+        String username = (String) authentication.getPrincipal();
+
+        // Retrieve user
+        UserDTO userDTO = userClient.getUserByUsername(username);
+        if (userDTO == null) {
+            throw new ResourceNotFoundException("User not found.");
+        }
+
+        // Fetch seat
+        SeatDTO seatDTO = seatClient.getSeatById(ticketWithPaymentRequest.getSeatId());
+        if (seatDTO == null) {
+            throw new ResourceNotFoundException("Seat not found.");
+        }
+
+        // Retrieve price
+        BigDecimal price = seatClient.getSeatPriceById(ticketWithPaymentRequest.getSeatId());
+        if (price == null) {
+            throw new ResourceNotFoundException("Price not found for the selected seat.");
+        }
+
+        ScheduleDTO scheduleDTO = scheduleClient.getScheduleById(ticketWithPaymentRequest.getScheduleId());
+        if (scheduleDTO == null) {
+            throw new ResourceNotFoundException("Schedule not found.");
+        }
+
+        // Validation
+        try {
+            boolean movieExists = movieClient.existsById(ticketWithPaymentRequest.getMovieId());
+            if (!movieExists) {
+                throw new ResourceNotFoundException("Movie with ID " + ticketWithPaymentRequest.getMovieId() + " does not exist.");
+            }
+        } catch (HandleRuntimeException e) {
+            log.error("Authorization error when accessing movie client: {}", e.getMessage());
+            throw new HandleRuntimeException("Cannot validate movie existence due to authorization restrictions.");
+        } catch (ResourceNotFoundException e) {
+            log.error("Movie resource not found: {}", e.getMessage());
+            throw e;
+        } catch (Exception e) {
+            log.error("Unexpected error occurred when accessing movie service: {}", e.getMessage());
+            throw new HandleRuntimeException("Unable to process the ticket at this time. Please try again later.");
+        }
+
+        Long cinemaId = ticketWithPaymentRequest.getCinemaId();
+        Long seatId = ticketWithPaymentRequest.getSeatId();
+        boolean isSeatValid = seatClient.getSeatsByCinema(cinemaId)
+                .stream()
+                .anyMatch(seat -> seat.seatId().equals(seatId));
+        
+        if (!isSeatValid) {
+            throw new IllegalArgumentException("Invalid seatId for the provided cinemaId.");
+        }
+
+        // Validation
+        if (scheduleDTO.availableSeats() <= 0) {
+            List<Long> reservedSeatIds = Optional.ofNullable(getReservedSeatIdsBySchedule(ticketWithPaymentRequest.getScheduleId()))
+                    .orElse(Collections.emptyList());
+            int totalSeatCount = seatClient.getTotalSeatsByCinemaId(scheduleDTO.cinemaId()).totalSeats();
+            int actualAvailableSeats = totalSeatCount - reservedSeatIds.size();
+
+            if (actualAvailableSeats <= 0) {
+                throw new AlreadyOccupiedException("Tickets are sold out for this schedule.");
+            }
+
+            log.warn("Schedule {} reported availableSeats=0; using actual computed availability {} from totalSeats={} reserved={}",
+                    ticketWithPaymentRequest.getScheduleId(), actualAvailableSeats, totalSeatCount, reservedSeatIds.size());
+        }
+
+        // Validation
+        if (!scheduleDTO.cinemaId().equals(ticketWithPaymentRequest.getCinemaId())) {
+            throw new AlreadyOccupiedException("The schedule does not belong to the selected cinema.");
+        }
+
+        if (isSeatReservedForSchedule(ticketWithPaymentRequest.getScheduleId(), ticketWithPaymentRequest.getSeatId())) {
+            throw new AlreadyOccupiedException("The selected seat is already reserved for this showtime.");
+        }
+
+        // Get movie and start time info before payment
+        String movieName = movieClient.getMovieNameById(ticketWithPaymentRequest.getMovieId());
+        String startTime = scheduleClient.getStartTime(ticketWithPaymentRequest.getScheduleId());
+
+        // Process payment BEFORE decreasing available seats
+        Long amountInCents = price.multiply(new BigDecimal("100")).longValue();
+        PaymentClient.PaymentRequest paymentRequest = new PaymentClient.PaymentRequest();
+        paymentRequest.setScheduleId(ticketWithPaymentRequest.getScheduleId());
+        paymentRequest.setAmount(amountInCents);
+        paymentRequest.setCurrency("USD");
+        paymentRequest.setDescription(String.format("Movie ticket for %s at schedule %d", movieName, ticketWithPaymentRequest.getScheduleId()));
+        paymentRequest.setCardNumber(ticketWithPaymentRequest.getCardNumber());
+        paymentRequest.setExpMonth(ticketWithPaymentRequest.getExpMonth());
+        paymentRequest.setExpYear(ticketWithPaymentRequest.getExpYear());
+        paymentRequest.setCvc(ticketWithPaymentRequest.getCvc());
+
+        try {
+            PaymentClient.PaymentResponse paymentResponse = paymentClient.createPayment(paymentRequest);
+            
+            if (paymentResponse == null || !"succeeded".equalsIgnoreCase(paymentResponse.getStatus())) {
+                throw new HandleRuntimeException("Payment processing failed. Status: " + 
+                    (paymentResponse != null ? paymentResponse.getStatus() : "unknown"));
+            }
+
+            log.info("Payment successful. Payment ID: {}", paymentResponse.getPaymentId());
+
+        } catch (Exception e) {
+            log.error("Payment processing error: {}", e.getMessage());
+            throw new HandleRuntimeException("Payment failed: " + e.getMessage());
+        }
+
+        // ONLY after payment succeeds, decrease available seats and book the ticket
+        scheduleClient.decreaseAvailableSeats(ticketWithPaymentRequest.getScheduleId());
+
+        ticket.setUserId(userDTO.userId());
+        ticket.setMovieId(ticketWithPaymentRequest.getMovieId());
+        ticket.setCinemaId(ticketWithPaymentRequest.getCinemaId());
+        ticket.setSeatId(ticketWithPaymentRequest.getSeatId());
+        ticket.setScheduleId(ticketWithPaymentRequest.getScheduleId());
+        ticket.setPrice(price);
+        ticket.setDate(new Date());
+
+        log.info("NEW TICKET (with payment): {}", ticket);
+
+        ticketDAO.createOneTicket(ticket);
+        NotificationRequest notificationRequest = new NotificationRequest(
+                ticket.getTicketId(),
+                "Ticket Purchased Successfully",
+                String.format("Dear %s, your ticket for the movie '%s' has been successfully booked with payment confirmed. " +
+                        "The price is '%s'. The start time is '%s'. Enjoy the movie!",
+                        username, movieName, price, startTime)
+        );
+
+        rabbitMqMessageProducer.publish(
+                notificationRequest,
+                "internal.exchange",
+                "internal.notification.routing-key"
+        );
+    }
+
     public void updateTicket(Long ticketId, TicketUpdateRequest ticketUpdateRequest) {
        //auth
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();

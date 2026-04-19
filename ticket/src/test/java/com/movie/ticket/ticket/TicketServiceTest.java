@@ -3,6 +3,7 @@ package com.movie.ticket.ticket;
 import com.movie.amqp.RabbitMqMessageProducer;
 import com.movie.client.movieClient.MovieClient;
 import com.movie.client.notification.NotificationRequest;
+import com.movie.client.paymentClient.PaymentClient;
 import com.movie.client.scheduleClient.ScheduleClient;
 import com.movie.client.seatClient.SeatClient;
 import com.movie.client.userClient.UserClient;
@@ -49,10 +50,12 @@ class TicketServiceTest {
     private ScheduleClient scheduleClient;
     @Mock
     private SeatClient seatClient;
+    @Mock
+    private PaymentClient paymentClient;
 
     @BeforeEach
     void setUp() {
-        underTests = new TicketService(ticketDAO,ticketDTOMapper,rabbitMqMessageProducer,userClient,movieClient,seatClient,scheduleClient);
+        underTests = new TicketService(ticketDAO, ticketDTOMapper, rabbitMqMessageProducer, userClient, movieClient, seatClient, scheduleClient, paymentClient);
     }
 
     @Test

@@ -35,6 +35,7 @@
 		<module>seat</module>
 		<module>schedule</module>
 		<module>ticket</module>
+		<module>payment</module>
 	</modules>
 	<scm>
 		<connection/>

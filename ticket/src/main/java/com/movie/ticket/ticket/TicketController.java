@@ -62,6 +62,21 @@ public class TicketController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
+    @PostMapping("/with-payment")
+    public ResponseEntity<?> createTicketWithPayment(@Valid @RequestBody TicketWithPaymentRequest ticketWithPaymentRequest,
+                                                      BindingResult bindingResult) {
+        List<String> errorMessage = new ArrayList<>();
+        if (bindingResult.hasErrors()) {
+            for (ObjectError error : bindingResult.getAllErrors()) {
+                errorMessage.add(error.getDefaultMessage());
+            }
+            return ResponseEntity.badRequest().body(errorMessage);
+        }
+
+        ticketService.createTicketWithPayment(ticketWithPaymentRequest);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
     @PutMapping("/{ticketId}")
         public ResponseEntity<?> updateTicket(@PathVariable("ticketId") Long ticketId,@RequestBody TicketUpdateRequest ticketUpdateRequest,
                                               BindingResult bindingResult){

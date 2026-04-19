@@ -125,7 +125,6 @@ public class SeatService {
     }
 
     public List<SeatDTO> getSeatsByCinema(Long cinemaId) {
-        ensureDefaultSeatsForCinema(cinemaId);
         return seatDAO.selectSeatsByCinemaId(cinemaId)
                 .stream()
                 .map(seatDTOMapper)
@@ -135,7 +134,6 @@ public class SeatService {
     public List<SeatAvailabilityDTO> getSeatsBySchedule(Long scheduleId) {
         ScheduleDTO scheduleDTO = scheduleClient.getScheduleById(scheduleId);
         Long cinemaId = scheduleDTO.cinemaId();
-        ensureDefaultSeatsForCinema(cinemaId);
         List<SeatDTO> seats = getSeatsByCinema(cinemaId);
         List<Long> reservedSeatIds = Optional.ofNullable(ticketClient.getReservedSeatIds(scheduleId)).orElse(Collections.emptyList());
 

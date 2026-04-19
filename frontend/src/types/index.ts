@@ -73,3 +73,17 @@ export interface CreateTicketRequest {
   movieId: number;
   cinemaId: number;
 }
+
+export interface PaymentDetails {
+  cardNumber: string;
+  expMonth: number;
+  expYear: number;
+  cvc: string;
+}
+
+export interface CreateTicketWithPaymentRequest extends CreateTicketRequest {
+  cardNumber: string;
+  expMonth: number;
+  expYear: number;
+  cvc: string;
+}

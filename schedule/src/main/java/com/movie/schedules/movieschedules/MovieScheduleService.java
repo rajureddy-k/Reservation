@@ -72,14 +72,7 @@ import java.util.stream.Collectors;
             throw new RuntimeException("Schedule time must be between 10:00 AM and 10:00 PM.");
         }
 
-        TotalSeatsDTO totalSeatsDTO = seatClient.getTotalSeatsByCinemaId(movieScheduleRegistrationRequest.cinemaId());
-
-        if (totalSeatsDTO == null || totalSeatsDTO.getTotalSeats() == null) {
-            throw new RuntimeException("Unable to fetch seat data for the specified cinema.");
-        }
-
         LocalDate scheduleDate = movieScheduleRegistrationRequest.date();
-        Long movieId = movieScheduleRegistrationRequest.movieId();
 
         List<MovieSchedule> existingSchedules = movieScheduleDAO.getSchedulesForCinemaOnDate(
                 movieScheduleRegistrationRequest.cinemaId(),
@@ -96,6 +89,11 @@ import java.util.stream.Collectors;
             }
         }
 
+        TotalSeatsDTO totalSeatsDTO = seatClient.getTotalSeatsByCinemaId(movieScheduleRegistrationRequest.cinemaId());
+
+        if (totalSeatsDTO == null || totalSeatsDTO.getTotalSeats() == null) {
+            throw new RuntimeException("Unable to fetch seat data for the specified cinema.");
+        }
 
         MovieSchedule movieSchedule = new MovieSchedule();
         movieSchedule.setDate(scheduleDate);
