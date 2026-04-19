@@ -89,7 +89,7 @@ public class SeatIntegrationTest {
     @Test
     void canGetSeatById() {
         long seatId = 23;
-        SeatDTO mockSeatDTO = new SeatDTO(seatId, 1, "A", "standard", false);
+        SeatDTO mockSeatDTO = new SeatDTO(seatId, 1, "A", "standard", 1L, false);
 
         when(seatService.getSeat(seatId)).thenReturn(mockSeatDTO);
 
