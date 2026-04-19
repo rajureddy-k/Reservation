@@ -81,12 +81,6 @@ import java.util.stream.Collectors;
         LocalDate scheduleDate = movieScheduleRegistrationRequest.date();
         Long movieId = movieScheduleRegistrationRequest.movieId();
 
-        long existingSchedulesCount = movieScheduleDAO.countSchedulesForMovieOnDate(movieId, scheduleDate);
-
-        if (existingSchedulesCount >= 2) {
-            throw new AlreadyOccupiedException("A maximum of 2 showings per day for the same movie is allowed.");
-        }
-
         List<MovieSchedule> existingSchedules = movieScheduleDAO.getSchedulesForCinemaOnDate(
                 movieScheduleRegistrationRequest.cinemaId(),
                 scheduleDate

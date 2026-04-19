@@ -67,6 +67,11 @@ public class SeatController {
         return seatService.getSeatsByCinema(cinemaId);
     }
 
+    @GetMapping("/schedule/{scheduleId}")
+    public List<SeatAvailabilityDTO> getSeatsBySchedule(@PathVariable Long scheduleId) {
+        log.info("Fetching seats for schedule ID: {}", scheduleId);
+        return seatService.getSeatsBySchedule(scheduleId);
+    }
 
     @GetMapping("/cinema/{cinemaId}/total-seats")
     public int getTotalSeatsByCinema(@PathVariable Long cinemaId) {

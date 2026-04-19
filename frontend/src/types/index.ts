@@ -37,6 +37,15 @@ export interface Seat {
   isOccupied: boolean;
 }
 
+export interface SeatAvailability {
+  seatId: number;
+  seatNumber: number;
+  row: string;
+  type: string;
+  cinemaId: number;
+  isReserved: boolean;
+}
+
 export interface Schedule {
   scheduleId: number;
   date: string;

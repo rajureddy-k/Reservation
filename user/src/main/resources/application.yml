@@ -22,7 +22,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
         jdbc:
@@ -38,7 +38,7 @@ spring:
 
   flyway:
     locations: classpath:db/migration/user
-    enabled: true
+    enabled: false
 
   rabbitmq:
     host: gerbil.rmq.cloudamqp.com
@@ -60,7 +60,7 @@ management:
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka/v2
+      defaultZone: http://localhost:8761/eureka/
     fetch-registry: true
     register-with-eureka: true
     enabled: true

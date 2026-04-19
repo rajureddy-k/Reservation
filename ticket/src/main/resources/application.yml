@@ -21,7 +21,7 @@ spring:
   jpa:
     show-sql: true
     hibernate:
-      ddl-auto: validate
+      ddl-auto: update
     properties:
       hibernate:
         jdbc:
@@ -44,13 +44,9 @@ spring:
             url: http://localhost:8082
           schedule:
             url: http://localhost:8085
-  sql:
-    init:
-      mode: never
-  flyway:
-    enabled: true
 
-    locations: classpath:db/migration/ticket
+  flyway:
+    enabled: false
 
   rabbitmq:
     host: gerbil.rmq.cloudamqp.com

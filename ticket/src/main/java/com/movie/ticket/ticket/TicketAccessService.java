@@ -53,6 +53,22 @@ public class TicketAccessService implements TicketDAO  {
     }
 
     @Override
+    public List<Ticket> selectTicketsBySchedule(Long scheduleId) {
+        var sql = """
+                SELECT * FROM ticket WHERE schedule_id = ?
+                """;
+        return jdbcTemplate.query(sql, rowMapper, scheduleId);
+    }
+
+    @Override
+    public Optional<Ticket> selectTicketByScheduleAndSeat(Long scheduleId, Long seatId) {
+        var sql = """
+                SELECT * FROM ticket WHERE schedule_id = ? AND seat_id = ?
+                """;
+        return jdbcTemplate.query(sql, rowMapper, scheduleId, seatId).stream().findFirst();
+    }
+
+    @Override
     public void createOneTicket(Ticket ticket) {
         var sql = """
           INSERT INTO ticket (user_id, movie_id, cinema_id, seat_id, schedule_id, price, date)
@@ -158,8 +174,8 @@ public class TicketAccessService implements TicketDAO  {
     @Override
     public boolean existTicketWithId(Long ticketId) {
         var sql= """
-                SELECT count(ticket_id)FROM users
-                where ticket_id=?
+                SELECT count(ticket_id) FROM ticket
+                WHERE ticket_id=?
                 """;
         Integer count = jdbcTemplate.queryForObject(sql,Integer.class,ticketId);
         return count!=null && count>0;

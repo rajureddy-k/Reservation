@@ -1,26 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Plus, CreditCard as Edit, Trash2 } from 'lucide-react';
 import { Seat, Cinema } from '../../types';
 import { seatService } from '../../services/seat.service';
 import { cinemaService } from '../../services/cinema.service';
 import { Button } from '../../components/Button';
-import { Input } from '../../components/Input';
 
 export function SeatManagement() {
   const [seats, setSeats] = useState<Seat[]>([]);
   const [cinemas, setCinemas] = useState<Cinema[]>([]);
+  const [selectedCinemaId, setSelectedCinemaId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [showForm, setShowForm] = useState(false);
-  const [editingSeat, setEditingSeat] = useState<Seat | null>(null);
   const [error, setError] = useState('');
-
-  const [formData, setFormData] = useState({
-    cinemaId: '',
-    seatNumber: '',
-    row: '',
-    type: 'STANDARD',
-    isAvailable: true,
-  });
 
   useEffect(() => {
     loadData();
@@ -29,12 +18,17 @@ export function SeatManagement() {
   const loadData = async () => {
     try {
       setIsLoading(true);
-      const [seatsData, cinemasData] = await Promise.all([
-        seatService.getAll(),
-        cinemaService.getAll(),
-      ]);
-      setSeats(Array.isArray(seatsData) ? seatsData : []);
+      const cinemasData = await cinemaService.getAll();
       setCinemas(Array.isArray(cinemasData) ? cinemasData : []);
+
+      const initialCinemaId = Array.isArray(cinemasData) && cinemasData.length > 0
+        ? cinemasData[0].cinemaId
+        : null;
+      setSelectedCinemaId(initialCinemaId);
+
+      if (initialCinemaId !== null) {
+        await loadSeats(initialCinemaId);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to load data');
       setSeats([]);
@@ -44,68 +38,33 @@ export function SeatManagement() {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-
+  const loadSeats = async (cinemaId: number) => {
     try {
-      const seatData = {
-        cinemaId: parseInt(formData.cinemaId),
-        seatNumber: parseInt(formData.seatNumber),
-        row: formData.row,
-        type: formData.type,
-        isOccupied: !formData.isAvailable,
-      };
-
-      if (editingSeat) {
-        await seatService.update(editingSeat.seatId, seatData);
-      } else {
-        await seatService.create(seatData);
-      }
-
-      setShowForm(false);
-      setEditingSeat(null);
-      resetForm();
-      loadData();
+      setIsLoading(true);
+      const seatsData = await seatService.getByCinema(cinemaId);
+      setSeats(Array.isArray(seatsData) ? seatsData : []);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Operation failed');
+      setError(err instanceof Error ? err.message : 'Failed to load seats');
+      setSeats([]);
+    } finally {
+      setIsLoading(false);
     }
   };
 
-  const handleEdit = (seat: Seat) => {
-    setEditingSeat(seat);
-    setFormData({
-      cinemaId: seat.cinemaId.toString(),
-      seatNumber: seat.seatNumber.toString(),
-      row: seat.row,
-      type: seat.type,
-      isAvailable: !seat.isOccupied,
-    });
-    setShowForm(true);
-  };
-
-  const handleDelete = async (id: number) => {
-    if (!confirm('Are you sure you want to delete this seat?')) return;
-
-    try {
-      // Backend doesn't support delete by id, need to check implementation
-      loadData();
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Delete failed');
-    }
-  };
-
-  const resetForm = () => {
-    setFormData({
-      cinemaId: '',
-      seatNumber: '',
-      row: '',
-      type: 'STANDARD',
-      isAvailable: true,
-    });
+  const handleCinemaChange = async (cinemaId: number) => {
+    setSelectedCinemaId(cinemaId);
+    await loadSeats(cinemaId);
   };
 
   const getCinemaName = (id: number) => cinemas.find((c) => c.cinemaId === id)?.cinemaName || 'Unknown';
+
+  const groupedRows = seats.reduce((acc, seat) => {
+    if (!acc[seat.row]) acc[seat.row] = [];
+    acc[seat.row].push(seat);
+    return acc;
+  }, {} as Record<string, Seat[]>);
+
+  const sortedRows = Object.keys(groupedRows).sort((a, b) => a.localeCompare(b));
 
   if (isLoading) {
     return <div className="text-center py-8">Loading...</div>;
@@ -119,140 +78,65 @@ export function SeatManagement() {
         </div>
       )}
 
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <h2 className="text-2xl font-bold text-gray-900">Seats</h2>
-        <Button
-          onClick={() => {
-            setShowForm(!showForm);
-            setEditingSeat(null);
-            resetForm();
-          }}
-        >
-          <Plus className="w-5 h-5 mr-2" />
-          Add Seat
+        <Button onClick={() => selectedCinemaId !== null && loadSeats(selectedCinemaId)}>
+          Refresh Seat Inventory
         </Button>
       </div>
 
-      {showForm && (
-        <form onSubmit={handleSubmit} className="bg-gray-50 rounded-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Cinema
-            </label>
-            <select
-              value={formData.cinemaId}
-              onChange={(e) => setFormData({ ...formData, cinemaId: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="">Select a cinema</option>
-              {cinemas.map((cinema) => (
-                <option key={cinema.cinemaId} value={cinema.cinemaId}>
-                  {cinema.cinemaName}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="grid md:grid-cols-2 gap-4">
-            <Input
-              label="Row"
-              value={formData.row}
-              onChange={(e) => setFormData({ ...formData, row: e.target.value })}
-              required
-            />
-            <Input
-              label="Seat Number"
-              value={formData.seatNumber}
-              onChange={(e) => setFormData({ ...formData, seatNumber: e.target.value })}
-              required
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Seat Type</label>
-            <select
-              value={formData.type}
-              onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-              className="w-full px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-              required
-            >
-              <option value="STANDARD">Standard</option>
-              <option value="VIP">VIP</option>
-              <option value="DISABLED">Disabled</option>
-            </select>
-          </div>
-
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="isAvailable"
-              checked={formData.isAvailable}
-              onChange={(e) =>
-                setFormData({ ...formData, isAvailable: e.target.checked })
-              }
-              className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
-            />
-            <label htmlFor="isAvailable" className="text-sm font-medium text-gray-700">
-              Available
-            </label>
-          </div>
-
-          <div className="flex space-x-3">
-            <Button type="submit">{editingSeat ? 'Update' : 'Create'} Seat</Button>
-            <Button
-              type="button"
-              variant="secondary"
-              onClick={() => {
-                setShowForm(false);
-                setEditingSeat(null);
-                resetForm();
-              }}
-            >
-              Cancel
-            </Button>
-          </div>
-        </form>
-      )}
-
-      <div className="grid gap-4">
-        {seats.map((seat) => (
-          <div
-            key={seat.seatId}
-            className="bg-white border border-gray-200 rounded-lg p-4 flex items-center justify-between"
+      <div className="bg-white rounded-xl shadow-lg p-6">
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-700 mb-2">Cinema</label>
+          <select
+            value={selectedCinemaId ?? ''}
+            onChange={(event) => handleCinemaChange(Number(event.target.value))}
+            className="w-full max-w-sm px-4 py-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
           >
-            <div>
-              <h3 className="font-bold text-lg text-gray-900">
-                Seat {seat.row}
-                {seat.seatNumber}
-              </h3>
-              <p className="text-gray-600">{getCinemaName(seat.cinemaId)}</p>
-              <span
-                className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-medium ${
-                  !seat.isOccupied
-                    ? 'bg-green-100 text-green-700'
-                    : 'bg-red-100 text-red-700'
-                }`}
-              >
-                {!seat.isOccupied ? 'Available' : 'Occupied'}
-              </span>
-            </div>
-            <div className="flex space-x-2">
-              <button
-                onClick={() => handleEdit(seat)}
-                className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"
-              >
-                <Edit className="w-5 h-5" />
-              </button>
-              <button
-                onClick={() => handleDelete(seat.seatId)}
-                className="p-2 text-red-600 hover:bg-red-50 rounded-lg"
-              >
-                <Trash2 className="w-5 h-5" />
-              </button>
-            </div>
+            {cinemas.map((cinema) => (
+              <option key={cinema.cinemaId} value={cinema.cinemaId}>
+                {cinema.cinemaName}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <p className="mb-4 text-sm text-gray-600">
+          Seat inventory is generated automatically for each cinema. Manual seat creation and editing has been removed from the workflow.
+        </p>
+
+        {seats.length === 0 ? (
+          <div className="text-gray-500">No seats found. Default inventory will be generated when a cinema is selected.</div>
+        ) : (
+          <div className="space-y-6">
+            {sortedRows.map((row) => (
+              <div key={row} className="space-y-3">
+                <div className="text-sm font-semibold text-gray-700">Row {row}</div>
+                <div className="grid grid-cols-8 gap-3">
+                  {groupedRows[row]
+                    .sort((a, b) => a.seatNumber - b.seatNumber)
+                    .map((seat) => (
+                      <div
+                        key={seat.seatId}
+                        className="rounded-lg border border-gray-200 bg-gray-50 p-3 text-center"
+                      >
+                        <div className="text-sm font-semibold text-gray-900">
+                          {seat.row}
+                          {seat.seatNumber}
+                        </div>
+                        <div className="text-xs uppercase tracking-[0.18em] text-gray-500">
+                          {seat.type}
+                        </div>
+                        <div className="mt-2 text-xs font-medium text-gray-600">
+                          {seat.isOccupied ? 'Occupied' : 'Available'}
+                        </div>
+                      </div>
+                    ))}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        )}
       </div>
     </div>
   );

@@ -19,6 +19,10 @@ public interface TicketDAO {
 
     Optional<Ticket> selectTicketById(Long ticketId);
 
+    List<Ticket> selectTicketsBySchedule(Long scheduleId);
+
+    Optional<Ticket> selectTicketByScheduleAndSeat(Long scheduleId, Long seatId);
+
     boolean existTicketWithId(Long id);
 
     void deleteTicket(Long ticketId);

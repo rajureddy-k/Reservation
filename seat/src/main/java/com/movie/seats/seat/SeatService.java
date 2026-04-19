@@ -8,6 +8,9 @@ package com.movie.seats.seat;
 import com.movie.amqp.RabbitMqMessageProducer;
 import com.movie.client.cinemaClient.CinemaClient;
 import com.movie.client.notification.NotificationRequest;
+import com.movie.client.scheduleClient.ScheduleClient;
+import com.movie.client.ticketClient.TicketClient;
+import com.movie.common.ScheduleDTO;
 import com.opencsv.CSVReader;
 import com.opencsv.exceptions.CsvValidationException;
 import jakarta.transaction.Transactional;
@@ -42,6 +45,8 @@ public class SeatService {
     private final SeatDAO seatDAO;
     private final SeatDTOMapper seatDTOMapper;
     private final CinemaClient cinemaClient;
+    private final ScheduleClient scheduleClient;
+    private final TicketClient ticketClient;
     private final RabbitMqMessageProducer rabbitMqMessageProducer;
 
     @Value("${seats.resources}")
@@ -53,11 +58,12 @@ public class SeatService {
 
 
 
-    public SeatService(@Qualifier("seatJdbc") SeatDAO seatDAO, SeatDTOMapper seatDTOMapper, CinemaClient cinemaClient, RabbitMqMessageProducer rabbitMqMessageProducer) {
+    public SeatService(@Qualifier("seatJdbc") SeatDAO seatDAO, SeatDTOMapper seatDTOMapper, CinemaClient cinemaClient, ScheduleClient scheduleClient, TicketClient ticketClient, RabbitMqMessageProducer rabbitMqMessageProducer) {
         this.seatDAO = seatDAO;
         this.seatDTOMapper = seatDTOMapper;
-
         this.cinemaClient = cinemaClient;
+        this.scheduleClient = scheduleClient;
+        this.ticketClient = ticketClient;
         this.rabbitMqMessageProducer = rabbitMqMessageProducer;
     }
 
@@ -119,12 +125,79 @@ public class SeatService {
     }
 
     public List<SeatDTO> getSeatsByCinema(Long cinemaId) {
+        ensureDefaultSeatsForCinema(cinemaId);
         return seatDAO.selectSeatsByCinemaId(cinemaId)
                 .stream()
                 .map(seatDTOMapper)
                 .collect(Collectors.toList());
     }
 
+    public List<SeatAvailabilityDTO> getSeatsBySchedule(Long scheduleId) {
+        ScheduleDTO scheduleDTO = scheduleClient.getScheduleById(scheduleId);
+        Long cinemaId = scheduleDTO.cinemaId();
+        ensureDefaultSeatsForCinema(cinemaId);
+        List<SeatDTO> seats = getSeatsByCinema(cinemaId);
+        List<Long> reservedSeatIds = Optional.ofNullable(ticketClient.getReservedSeatIds(scheduleId)).orElse(Collections.emptyList());
+
+        return seats.stream()
+                .map(seat -> new SeatAvailabilityDTO(
+                        seat.seatId(),
+                        seat.seatNumber(),
+                        seat.row(),
+                        seat.type(),
+                        cinemaId,
+                        reservedSeatIds.contains(seat.seatId())
+                ))
+                .sorted((first, second) -> {
+                    int rowComparison = first.row().compareTo(second.row());
+                    if (rowComparison != 0) {
+                        return rowComparison;
+                    }
+                    return first.seatNumber().compareTo(second.seatNumber());
+                })
+                .collect(Collectors.toList());
+    }
+
+    private void ensureDefaultSeatsForCinema(Long cinemaId) {
+        if (cinemaId == null) {
+            return;
+        }
+        if (seatDAO.countSeatsByCinemaId(cinemaId) > 0) {
+            return;
+        }
+        log.info("No seats found for cinema {}. Generating default seat inventory.", cinemaId);
+        generateDefaultSeatsForCinema(cinemaId);
+    }
+
+    private void generateDefaultSeatsForCinema(Long cinemaId) {
+        List<String> rows = List.of("A", "B", "C", "D", "E");
+        int seatsPerRow = 8;
+
+        for (String row : rows) {
+            for (int seatNumber = 1; seatNumber <= seatsPerRow; seatNumber++) {
+                Seat seat = new Seat();
+                seat.setCinemaId(cinemaId);
+                seat.setRow(row);
+                seat.setSeatNumber(seatNumber);
+                seat.setType(getDefaultSeatType(row, seatNumber));
+                seat.setOccupied(false);
+                seatDAO.insertSeat(seat);
+            }
+        }
+    }
+
+    private String getDefaultSeatType(String row, int seatNumber) {
+        if ("A".equals(row) && seatNumber <= 4) {
+            return SeatType.VIP.name();
+        }
+        if ("D".equals(row) && seatNumber <= 2) {
+            return SeatType.DISABLED.name();
+        }
+        if ("E".equals(row) && seatNumber <= 2) {
+            return SeatType.DISABLED.name();
+        }
+        return SeatType.STANDARD.name();
+    }
 
     public void  updateSeat(Long seatId,SeatUpdateRequest seatUpdateRequest){
         Seat seat = seatDAO.selectSeatById(seatId)
@@ -278,7 +351,7 @@ public class SeatService {
     }
 
     public int getTotalSeatsByCinemaId(Long cinemaId) {
-
+        ensureDefaultSeatsForCinema(cinemaId);
         return seatDAO.countSeatsByCinemaId(cinemaId);
     }
 

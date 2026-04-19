@@ -2,6 +2,8 @@ package com.movie.seats.seat;
 
 import com.movie.amqp.RabbitMqMessageProducer;
 import com.movie.client.cinemaClient.CinemaClient;
+import com.movie.client.scheduleClient.ScheduleClient;
+import com.movie.client.ticketClient.TicketClient;
 import com.movie.client.notification.NotificationRequest;
 import com.movie.common.CinemaDTO;
 import org.junit.jupiter.api.BeforeEach;
@@ -32,6 +34,10 @@ class SeatServiceTest {
     private SeatDAO seatDAO;
     @Mock
     private CinemaClient cinemaClient;
+    @Mock
+    private ScheduleClient scheduleClient;
+    @Mock
+    private TicketClient ticketClient;
     @InjectMocks
     private SeatService seatService;
     private final  SeatDTOMapper seatDTOMapper = new SeatDTOMapper();
@@ -40,7 +46,7 @@ class SeatServiceTest {
 
     @BeforeEach
     void setUp() {
-        underTest = new SeatService(seatDAO,seatDTOMapper,cinemaClient,rabbitMqMessageProducer);
+        underTest = new SeatService(seatDAO,seatDTOMapper,cinemaClient,scheduleClient,ticketClient,rabbitMqMessageProducer);
     }
 
     @Test

@@ -1,5 +1,5 @@
 import { api } from './api';
-import { Seat } from '../types';
+import { Seat, SeatAvailability } from '../types';
 
 export const seatService = {
   getAll(): Promise<Seat[]> {
@@ -8,6 +8,10 @@ export const seatService = {
 
   getByCinema(cinemaId: number): Promise<Seat[]> {
     return api.get<Seat[]>(`/api/v1/seats/cinema/${cinemaId}`);
+  },
+
+  getBySchedule(scheduleId: number): Promise<SeatAvailability[]> {
+    return api.get<SeatAvailability[]>(`/api/v1/seats/schedule/${scheduleId}`);
   },
 
   create(seat: Omit<Seat, 'seatId'>): Promise<Seat> {

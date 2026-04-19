@@ -41,6 +41,12 @@ public class TicketController {
         return ResponseEntity.ok(ticketDTO);
     }
 
+    @GetMapping("/schedule/{scheduleId}/seat-ids")
+    public ResponseEntity<List<Long>> getReservedSeatIds(@PathVariable Long scheduleId) {
+        List<Long> reservedSeatIds = ticketService.getReservedSeatIdsBySchedule(scheduleId);
+        return ResponseEntity.ok(reservedSeatIds);
+    }
+
     @PostMapping
     public ResponseEntity<?> createTicket(@Valid @RequestBody TicketRegistrationRequest ticketRegistrationRequest,
                                                BindingResult bindingResult) {

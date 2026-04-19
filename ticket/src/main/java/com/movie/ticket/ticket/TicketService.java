@@ -23,9 +23,11 @@ import org.springframework.stereotype.Service;
 import java.math.BigDecimal;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
@@ -86,6 +88,17 @@ public class TicketService {
 
 
         return new ArrayList<>(tickets);
+    }
+
+    public List<Long> getReservedSeatIdsBySchedule(Long scheduleId) {
+        return ticketDAO.selectTicketsBySchedule(scheduleId)
+                .stream()
+                .map(Ticket::getSeatId)
+                .collect(Collectors.toList());
+    }
+
+    public boolean isSeatReservedForSchedule(Long scheduleId, Long seatId) {
+        return ticketDAO.selectTicketByScheduleAndSeat(scheduleId, seatId).isPresent();
     }
 
     public void createTicket(TicketRegistrationRequest ticketRegistrationRequest) {
@@ -153,14 +166,19 @@ public class TicketService {
             throw new IllegalArgumentException("Invalid seatId for the provided cinemaId.");
         }
 
-        //validation
-        if (scheduleDTO.availableSeats() <= 0) {
-            throw new AlreadyOccupiedException("Tickets are sold out for this schedule.");
-        }
-
         // validation
-        if (seatDTO.isOccupied()) {
-            throw new AlreadyOccupiedException("The selected seat is already occupied.");
+        if (scheduleDTO.availableSeats() <= 0) {
+            List<Long> reservedSeatIds = Optional.ofNullable(ticketClient.getReservedSeatIds(ticketRegistrationRequest.scheduleId()))
+                    .orElse(Collections.emptyList());
+            int totalSeatCount = seatClient.getTotalSeatsByCinemaId(scheduleDTO.cinemaId());
+            int actualAvailableSeats = totalSeatCount - reservedSeatIds.size();
+
+            if (actualAvailableSeats <= 0) {
+                throw new AlreadyOccupiedException("Tickets are sold out for this schedule.");
+            }
+
+            log.warn("Schedule {} reported availableSeats=0; using actual computed availability {} from totalSeats={} reserved={}",
+                    ticketRegistrationRequest.scheduleId(), actualAvailableSeats, totalSeatCount, reservedSeatIds.size());
         }
 
         //validation
@@ -168,12 +186,13 @@ public class TicketService {
             throw new AlreadyOccupiedException("The schedule does not belong to the selected cinema.");
         }
 
+        if (isSeatReservedForSchedule(ticketRegistrationRequest.scheduleId(), ticketRegistrationRequest.seatId())) {
+            throw new AlreadyOccupiedException("The selected seat is already reserved for this showtime.");
+        }
 
         // decrease available seats
         scheduleClient.decreaseAvailableSeats(ticketRegistrationRequest.scheduleId());
 
-        // Mark the seat
-        seatClient.updateSeatOccupation(ticketRegistrationRequest.seatId(), true);
         String movieName = movieClient.getMovieNameById(ticketRegistrationRequest.movieId());
 
         String startTime = scheduleClient.getStartTime(ticketRegistrationRequest.scheduleId());
@@ -210,14 +229,12 @@ public class TicketService {
             throw new HandleRuntimeException("Unauthorized user. Please login before proceeding.");
         }
         String username = (String) authentication.getPrincipal();
-        String movieName = movieClient.getMovieNameById(ticketUpdateRequest.movieId());
-
-        SeatDTO seatDTO = seatClient.getSeatById(ticketUpdateRequest.seatId());
         Ticket ticket = ticketDAO.selectTicketById(ticketId)
                 .orElseThrow(() -> new ResourceNotFoundException("Ticket with [%s] not found.".formatted(ticketId)));
 
         Long oldSeatId = ticket.getSeatId();
-
+        Long effectiveMovieId = ticketUpdateRequest.movieId() != null ? ticketUpdateRequest.movieId() : ticket.getMovieId();
+        String movieName = movieClient.getMovieNameById(effectiveMovieId);
 
         if (!ticket.getScheduleId().equals(ticketUpdateRequest.scheduleId())) {
             throw new IllegalArgumentException("Schedule ID cannot be changed.");
@@ -225,66 +242,52 @@ public class TicketService {
 
         boolean changes = false;
 
-
         if (ticketUpdateRequest.movieId() != null && !ticketUpdateRequest.movieId().equals(ticket.getMovieId())) {
             ticket.setMovieId(ticketUpdateRequest.movieId());
             changes = true;
         }
-
 
         if (ticketUpdateRequest.cinemaId() != null && !ticketUpdateRequest.cinemaId().equals(ticket.getCinemaId())) {
             ticket.setCinemaId(ticketUpdateRequest.cinemaId());
             changes = true;
         }
 
-
         if (ticketUpdateRequest.seatId() != null && !ticketUpdateRequest.seatId().equals(ticket.getSeatId())) {
+            SeatDTO seatDTO = seatClient.getSeatById(ticketUpdateRequest.seatId());
             if (seatDTO == null) {
                 throw new ResourceNotFoundException("Seat not found.");
             }
-            if (seatDTO.isOccupied()) {
-                throw new AlreadyOccupiedException("The selected seat is already occupied.");
+            if (isSeatReservedForSchedule(ticket.getScheduleId(), ticketUpdateRequest.seatId())) {
+                throw new AlreadyOccupiedException("The selected seat is already reserved for this showtime.");
             }
             ticket.setSeatId(ticketUpdateRequest.seatId());
             changes = true;
         }
 
-        Long cinemaId = ticketUpdateRequest.cinemaId();
-        Long seatId = ticketUpdateRequest.seatId();
-        boolean isSeatValid = seatClient.getSeatsByCinema(cinemaId)
+        Long effectiveCinemaId = ticketUpdateRequest.cinemaId() != null ? ticketUpdateRequest.cinemaId() : ticket.getCinemaId();
+        Long effectiveSeatId = ticketUpdateRequest.seatId() != null ? ticketUpdateRequest.seatId() : ticket.getSeatId();
+        boolean isSeatValid = seatClient.getSeatsByCinema(effectiveCinemaId)
                 .stream()
-                .anyMatch(seat -> seat.seatId().equals(seatId));
-        //validation
+                .anyMatch(seat -> seat.seatId().equals(effectiveSeatId));
 
         if (!isSeatValid) {
             throw new IllegalArgumentException("Invalid seatId for the provided cinemaId.");
         }
 
-        // Update price if it has changed
-        if (ticketUpdateRequest.price() != null && !ticketUpdateRequest.price().equals(ticket.getTicketId())) {
+        if (ticketUpdateRequest.price() != null && !ticketUpdateRequest.price().equals(ticket.getPrice())) {
             ticket.setPrice(ticketUpdateRequest.price());
             changes = true;
         }
 
-        // Update date if it has changed
         if (ticketUpdateRequest.date() != null && !ticketUpdateRequest.date().equals(ticket.getDate())) {
             ticket.setDate(ticketUpdateRequest.date());
             changes = true;
         }
 
-
         if (!changes) {
             throw new ResourceNotFoundException("No changes were made.");
         }
 
-        // Update the seat occupation
-        if (oldSeatId != null && !oldSeatId.equals(ticketUpdateRequest.seatId())) {
-            log.info("Old Seat {} changed.", oldSeatId);
-            seatClient.updateSeatOccupation(oldSeatId, false);
-        }
-        seatClient.updateSeatOccupation(ticketUpdateRequest.seatId(), true);
-
-        // Update the ticket record in the database
         ticketDAO.updateTicket(ticket);
 
         NotificationRequest notificationRequest = new NotificationRequest(
