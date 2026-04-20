@@ -28,10 +28,11 @@ class SeatRowMapperTest {
         when(resultSet.getString("row")).thenReturn("A");
         when(resultSet.getString("type")).thenReturn("VIP");
         when(resultSet.getLong("cinema_id")).thenReturn(1L);
+        when(resultSet.getLong("schedule_id")).thenReturn(5L);
         when(resultSet.getBoolean("is_occupied")).thenReturn(true);
 
         Seat actual = seatRowMapper.mapRow(resultSet,1);
-        Seat expected = new Seat(2L,5,"A","VIP",1L,true);
+        Seat expected = new Seat(2L,5,"A","VIP",1L,5L,true);
         assertThat(actual).isEqualTo(expected);
     }
 }

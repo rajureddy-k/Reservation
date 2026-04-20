@@ -20,6 +20,7 @@ public class SeatRowMapper implements RowMapper<Seat> {
                 .row(rs.getString("row"))
                 .type(rs.getString("type"))
                 .cinemaId(rs.getLong("cinema_id"))
+                .scheduleId(rs.getLong("schedule_id"))
                 .isOccupied(rs.getBoolean("is_occupied"))
                 .build();
     }

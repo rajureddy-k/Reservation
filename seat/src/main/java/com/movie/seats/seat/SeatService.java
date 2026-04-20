@@ -103,7 +103,7 @@ public class SeatService {
         Seat seat = new Seat();
         seat.setSeatNumber(seatRegistrationRequest.seatNumber());
         seat.setRow(seatRegistrationRequest.row());
-        seat.setCinemaId(seatRegistrationRequest.cinemaId());
+        seat.setScheduleId(seatRegistrationRequest.scheduleId());
         seat.setOccupied(seatRegistrationRequest.isOccupied());
 
         SeatType seatType = SeatType.valueOf(seatRegistrationRequest.type().toUpperCase());
@@ -132,19 +132,18 @@ public class SeatService {
     }
 
     public List<SeatAvailabilityDTO> getSeatsBySchedule(Long scheduleId) {
-        ScheduleDTO scheduleDTO = scheduleClient.getScheduleById(scheduleId);
-        Long cinemaId = scheduleDTO.cinemaId();
-        List<SeatDTO> seats = getSeatsByCinema(cinemaId);
+        List<Seat> seats = seatDAO.selectSeatsByScheduleId(scheduleId);
         List<Long> reservedSeatIds = Optional.ofNullable(ticketClient.getReservedSeatIds(scheduleId)).orElse(Collections.emptyList());
 
         return seats.stream()
                 .map(seat -> new SeatAvailabilityDTO(
-                        seat.seatId(),
-                        seat.seatNumber(),
-                        seat.row(),
-                        seat.type(),
-                        cinemaId,
-                        reservedSeatIds.contains(seat.seatId())
+                        seat.getSeatId(),
+                        seat.getSeatNumber(),
+                        seat.getRow(),
+                        seat.getType(),
+                        seat.getCinemaId(),
+                        seat.getScheduleId(),
+                        reservedSeatIds.contains(seat.getSeatId())
                 ))
                 .sorted((first, second) -> {
                     int rowComparison = first.row().compareTo(second.row());
@@ -227,6 +226,12 @@ public class SeatService {
             seat.setCinemaId(seatUpdateRequest.cinemaId());
             changes = true;
         }
+
+        if (seatUpdateRequest.scheduleId() != null && !seat.getScheduleId().equals(seatUpdateRequest.scheduleId())) {
+            seat.setScheduleId(seatUpdateRequest.scheduleId());
+            changes = true;
+        }
+
         if (seatUpdateRequest.isOccupied() != null && seat.isOccupied() != seatUpdateRequest.isOccupied()) {
             seat.setOccupied(seatUpdateRequest.isOccupied());
             changes = true;
@@ -237,6 +242,40 @@ public class SeatService {
         }
             seatDAO.updateSeat(seat);
 
+    }
+
+    public void createSeatsForSchedule(Long scheduleId, Long cinemaId) {
+        // Check if seats already exist for this schedule
+        if (seatDAO.countSeatsByScheduleId(scheduleId) > 0) {
+            log.info("Seats already exist for schedule {}, skipping creation", scheduleId);
+            return; // Seats already created for this schedule
+        }
+
+        // Ensure template seats exist for this cinema
+        ensureDefaultSeatsForCinema(cinemaId);
+        
+        // Get all template seats for the cinema (only seats with schedule_id = NULL)
+        List<Seat> cinemaSeats = seatDAO.selectSeatsByCinemaId(cinemaId);
+        
+        if (cinemaSeats.isEmpty()) {
+            log.warn("No template seats found for cinema {} when creating seats for schedule {}", cinemaId, scheduleId);
+            return;
+        }
+        
+        log.info("Creating {} schedule-specific seats for schedule {} from template seats", cinemaSeats.size(), scheduleId);
+        
+        // Create seats for the schedule by copying from cinema seats
+        for (Seat cinemaSeat : cinemaSeats) {
+            Seat scheduleSeat = new Seat();
+            scheduleSeat.setCinemaId(cinemaId);
+            scheduleSeat.setScheduleId(scheduleId);
+            scheduleSeat.setRow(cinemaSeat.getRow());
+            scheduleSeat.setSeatNumber(cinemaSeat.getSeatNumber());
+            scheduleSeat.setType(cinemaSeat.getType());
+            scheduleSeat.setOccupied(false); // New schedule seats start unoccupied
+            
+            seatDAO.insertSeat(scheduleSeat);
+        }
     }
 
 

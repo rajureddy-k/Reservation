@@ -42,6 +42,9 @@ public class Seat {
     @Column(name = "cinema_id")
     private Long cinemaId;
 
+    @Column(name = "schedule_id")
+    private Long scheduleId;
+
     @Column(name = "is_occupied")
     private boolean isOccupied;
 
@@ -49,12 +52,13 @@ public class Seat {
     public Seat() {
     }
 
-    public Seat(Long seatId, Integer seatNumber, String row, String type, Long cinemaId, boolean isOccupied) {
+    public Seat(Long seatId, Integer seatNumber, String row, String type, Long cinemaId, Long scheduleId, boolean isOccupied) {
         this.seatId = seatId;
         this.seatNumber = seatNumber;
         this.row = row;
         this.type = type;
         this.cinemaId = cinemaId;
+        this.scheduleId = scheduleId;
         this.isOccupied = isOccupied;
     }
 
@@ -77,6 +81,10 @@ public class Seat {
 
     public Long getCinemaId() {
         return cinemaId;
+    }
+
+    public Long getScheduleId() {
+        return scheduleId;
     }
 
     public boolean isOccupied() {
@@ -104,6 +112,10 @@ public class Seat {
         this.cinemaId = cinemaId;
     }
 
+    public void setScheduleId(Long scheduleId) {
+        this.scheduleId = scheduleId;
+    }
+
     public void setOccupied(boolean occupied) {
         isOccupied = occupied;
     }
@@ -116,6 +128,7 @@ public class Seat {
                 ", row='" + row + '\'' +
                 ", type='" + type + '\'' +
                 ", cinemaId=" + cinemaId +
+                ", scheduleId=" + scheduleId +
                 ", isOccupied=" + isOccupied +
                 '}';
     }
@@ -125,12 +138,12 @@ public class Seat {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         Seat seat = (Seat) o;
-        return Objects.equals(seatId, seat.seatId) && Objects.equals(seatNumber, seat.seatNumber) && Objects.equals(row, seat.row) && Objects.equals(type, seat.type) && Objects.equals(cinemaId, seat.cinemaId);
+        return Objects.equals(seatId, seat.seatId) && Objects.equals(seatNumber, seat.seatNumber) && Objects.equals(row, seat.row) && Objects.equals(type, seat.type) && Objects.equals(cinemaId, seat.cinemaId) && Objects.equals(scheduleId, seat.scheduleId);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(seatId, seatNumber, row, type, cinemaId);
+        return Objects.hash(seatId, seatNumber, row, type, cinemaId, scheduleId);
     }
 
     // Builder pattern
@@ -144,6 +157,7 @@ public class Seat {
         private String row;
         private String type;
         private Long cinemaId;
+        private Long scheduleId;
         private boolean isOccupied;
 
         public SeatBuilder seatId(Long seatId) {
@@ -171,13 +185,18 @@ public class Seat {
             return this;
         }
 
+        public SeatBuilder scheduleId(Long scheduleId) {
+            this.scheduleId = scheduleId;
+            return this;
+        }
+
         public SeatBuilder isOccupied(boolean isOccupied) {
             this.isOccupied = isOccupied;
             return this;
         }
 
         public Seat build() {
-            return new Seat(seatId, seatNumber, row, type, cinemaId, isOccupied);
+            return new Seat(seatId, seatNumber, row, type, cinemaId, scheduleId, isOccupied);
         }
     }
 

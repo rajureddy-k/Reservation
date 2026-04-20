@@ -58,7 +58,7 @@ class SeatServiceTest {
     @Test
     void getSeat() {
         long seatId = 14;
-        Seat seat = new Seat(seatId,12,"A","VIP",1L,false);
+        Seat seat = new Seat(seatId,12,"A","VIP",1L,5L,false);
         when(seatDAO.selectSeatById(seatId)).thenReturn(Optional.of(seat));
 
         SeatDTO expected  = seatDTOMapper.apply(seat);
@@ -73,7 +73,7 @@ class SeatServiceTest {
                 2,
                 "A",
                 "VIP",
-                2L,
+                5L,
                 false
         );
 
@@ -84,7 +84,7 @@ class SeatServiceTest {
         Seat capturedSeat = seatArgumentCaptor.getValue();
 
 
-        assertThat(capturedSeat.getCinemaId()).isEqualTo(seatRegistrationRequest.cinemaId());
+        assertThat(capturedSeat.getScheduleId()).isEqualTo(seatRegistrationRequest.scheduleId());
         assertThat(capturedSeat.getSeatNumber()).isEqualTo(seatRegistrationRequest.seatNumber());
         assertThat(capturedSeat.getRow()).isEqualTo(seatRegistrationRequest.row());
         assertThat(capturedSeat.getType()).isEqualTo(seatRegistrationRequest.type());
@@ -102,7 +102,7 @@ class SeatServiceTest {
     void getSeatsByCinema() {
         long cinemaId = 1;
         CinemaDTO cinemaDTO = new CinemaDTO(cinemaId,"Amax","NU");
-        Seat seat = new Seat(1L, 2, "A", "VIP", 1L, false);
+        Seat seat = new Seat(1L, 2, "A", "VIP", 1L, 5L, false);
         when(seatDAO.selectSeatsByCinemaId(cinemaDTO.cinemaId())).thenReturn(List.of(seat));
 
         SeatDTO expected = seatDTOMapper.apply(seat);

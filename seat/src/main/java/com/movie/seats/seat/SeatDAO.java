@@ -21,7 +21,11 @@ public interface SeatDAO {
 
     List<Seat> selectSeatsByCinemaId(Long cinemaId);
 
+    List<Seat> selectSeatsByScheduleId(Long scheduleId);
+
     int countSeatsByCinemaId(Long cinemaId);
+
+    int countSeatsByScheduleId(Long scheduleId);
 
     void deleteSeatsById(Long seatId);
 

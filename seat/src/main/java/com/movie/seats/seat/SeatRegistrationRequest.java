@@ -14,8 +14,8 @@ public record SeatRegistrationRequest(
         String row,
         @NotBlank(message = "Type of seats name is required")
         String type,
-        @NotNull(message = "Cinema id is required")
-        Long cinemaId,
+        @NotNull(message = "Schedule id is required")
+        Long scheduleId,
         @NotNull(message = "Seat occupation id is required")
         Boolean isOccupied
 ){}
