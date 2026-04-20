@@ -18,6 +18,7 @@ public class SeatDTOMapper implements Function<Seat,SeatDTO> {
                 seat.getRow(),
                 seat.getType(),
                 seat.getCinemaId(),
+                seat.getScheduleId(),
                 seat.isOccupied()
 
         );

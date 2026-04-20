@@ -10,6 +10,7 @@ public record SeatDTO(
         String row,
         String type,
         Long cinemaId,
+        Long scheduleId,
         Boolean isOccupied
 
 ) { }

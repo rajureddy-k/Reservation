@@ -104,6 +104,8 @@ import java.util.stream.Collectors;
         movieSchedule.setMovieId(movieScheduleRegistrationRequest.movieId());
         movieScheduleDAO.createSchedule(movieSchedule);
 
+        // Create seats for the new schedule
+        seatClient.createSeatsForSchedule(movieSchedule.getScheduleId(), movieScheduleRegistrationRequest.cinemaId());
 
         NotificationRequest notificationRequest = new NotificationRequest(
                 movieSchedule.getScheduleId(),

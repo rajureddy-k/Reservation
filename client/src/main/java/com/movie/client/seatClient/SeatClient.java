@@ -35,6 +35,9 @@ public interface SeatClient {
     @GetMapping("/api/v1/seats/cinema/{cinemaId}")
     List<SeatDTO> getSeatsByCinema(@PathVariable("cinemaId") Long cinemaId);
 
+    @PostMapping("/api/v1/seats/schedule/{scheduleId}/create-all")
+    void createSeatsForSchedule(@PathVariable("scheduleId") Long scheduleId, @RequestParam("cinemaId") Long cinemaId);
+
 }
 
 

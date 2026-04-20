@@ -8,6 +8,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 @Component
 public class CustomFeignErrorDecoder implements ErrorDecoder {
@@ -19,7 +20,7 @@ public class CustomFeignErrorDecoder implements ErrorDecoder {
         String responseBody = null;
         try {
             if (response.body() != null) {
-                responseBody = response.body().asInputStream().toString();
+                responseBody = new String(response.body().asInputStream().readAllBytes(), StandardCharsets.UTF_8);
             }
         } catch (IOException e) {
             log.error("Failed to read response body", e);

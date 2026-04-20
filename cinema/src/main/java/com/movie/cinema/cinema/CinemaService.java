@@ -96,12 +96,22 @@ public class CinemaService {
     }
     @PostConstruct
     public void loadCinemasFromCSV() {
+        // Check if cinemas already exist in the database
+        List<Cinema> existingCinemas = cinemaDAO.selectAllCinemas();
+        if (!existingCinemas.isEmpty()) {
+            // Data already loaded, populate the cinemaMap and return
+            cinemaMap = new HashMap<>();
+            for (Cinema cinema : existingCinemas) {
+                cinemaMap.put(cinema.getCinemaName(), cinema.getCinemaId());
+            }
+            return;
+        }
+
         String csvFilePath = "cinemas.csv";
         cinemaMap = new HashMap<>();
         try (CSVReader csvReader = new CSVReader(new InputStreamReader(
                 Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(csvFilePath))))) {
             String[] values;
-
 
             csvReader.readNext();
 
@@ -113,7 +123,8 @@ public class CinemaService {
                 cinema.setCinemaLocation(cinemaLocation);
                 cinemaDAO.insertCinema(cinema);
 
-                cinemaMap.put(cinemaName, cinema.getCinemaId());      }
+                cinemaMap.put(cinemaName, cinema.getCinemaId());
+            }
         } catch (IOException | CsvValidationException e) {
             e.printStackTrace();
         }

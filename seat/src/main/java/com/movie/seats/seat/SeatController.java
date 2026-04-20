@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import com.movie.common.TotalSeatsDTO;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.validation.BindingResult;
 import org.springframework.validation.ObjectError;
@@ -74,9 +75,10 @@ public class SeatController {
     }
 
     @GetMapping("/cinema/{cinemaId}/total-seats")
-    public int getTotalSeatsByCinema(@PathVariable Long cinemaId) {
+    public TotalSeatsDTO getTotalSeatsByCinema(@PathVariable Long cinemaId) {
         log.info("Fetching total seats for cinema: {}", cinemaId);
-        return seatService.getTotalSeatsByCinemaId(cinemaId);
+        int totalSeats = seatService.getTotalSeatsByCinemaId(cinemaId);
+        return new TotalSeatsDTO(totalSeats);
     }
 
     @GetMapping("/{seatId}/is-occupied")
@@ -96,6 +98,13 @@ public class SeatController {
         log.info("Update seat: {}", seatUpdateRequest);
         seatService.updateSeat(seatId, seatUpdateRequest);
         return ResponseEntity.status(HttpStatus.OK).build();
+    }
+
+    @PostMapping("/schedule/{scheduleId}/create-all")
+    public ResponseEntity<?> createSeatsForSchedule(@PathVariable("scheduleId") Long scheduleId, @RequestParam("cinemaId") Long cinemaId) {
+        log.info("Creating seats for schedule ID: {} and cinema ID: {}", scheduleId, cinemaId);
+        seatService.createSeatsForSchedule(scheduleId, cinemaId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 
     @GetMapping("/price/{seatType}")

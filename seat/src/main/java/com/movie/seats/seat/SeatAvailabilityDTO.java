@@ -9,6 +9,7 @@ public record SeatAvailabilityDTO(
         String row,
         String type,
         Long cinemaId,
+        Long scheduleId,
         boolean isReserved
 ) {
 }

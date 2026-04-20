@@ -76,7 +76,7 @@ public class SeatIntegrationTest {
     void canRegisterNewSeatScheme() {
 
         SeatRegistrationRequest seatRegistrationRequest = new SeatRegistrationRequest(
-                1, "A", "Standard", 1L,true
+                1, "A", "Standard", 5L,true
         );
         webTestClient.post()
                 .uri(SEAT_PATH)
@@ -89,7 +89,7 @@ public class SeatIntegrationTest {
     @Test
     void canGetSeatById() {
         long seatId = 23;
-        SeatDTO mockSeatDTO = new SeatDTO(seatId, 1, "A", "standard", 1L, false);
+        SeatDTO mockSeatDTO = new SeatDTO(seatId, 1, "A", "standard", 1L, 5L, false);
 
         when(seatService.getSeat(seatId)).thenReturn(mockSeatDTO);
 
@@ -128,7 +128,7 @@ public class SeatIntegrationTest {
     void canUpdateTicket() {
 
         SeatUpdateRequest seatUpdateRequest = new SeatUpdateRequest(
-                265, "D", "VIP", 1L,false
+                265, "D", "VIP", 1L, 5L, false
         );
 
         webTestClient.put()
@@ -142,7 +142,7 @@ public class SeatIntegrationTest {
     @Test
     void canDeleteTicket() {
 
-        Seat seat = new Seat(1L,234, "C", "Standard", 1L,false);
+        Seat seat = new Seat(1L,234, "C", "Standard", 1L, 5L, false);
         when(seatDAO.selectSeatById(1L)).thenReturn(Optional.of(seat));
 
         webTestClient.delete()

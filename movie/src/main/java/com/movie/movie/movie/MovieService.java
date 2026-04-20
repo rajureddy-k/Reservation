@@ -7,12 +7,18 @@ import com.movie.client.notification.NotificationRequest;
 import com.movie.exceptions.DuplicateResourceException;
 import com.movie.exceptions.RequestValidationException;
 import com.movie.exceptions.ResourceNotFoundException;
+import com.opencsv.CSVReader;
+import com.opencsv.exceptions.CsvValidationException;
+import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
+import java.io.InputStreamReader;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -33,6 +39,45 @@ public class MovieService {
         this.movieDTOMapper = movieDTOMapper;
         this.rabbitMqMessageProducer = rabbitMqMessageProducer;
 
+    }
+
+    @PostConstruct
+    public void loadMoviesFromCSV() {
+        // Check if movies already exist in the database
+        List<Movie> existingMovies = movieDAO.selectAllMovies();
+        if (!existingMovies.isEmpty()) {
+            // Data already loaded, return
+            return;
+        }
+
+        String csvFilePath = "movies.csv";
+        try (CSVReader csvReader = new CSVReader(new InputStreamReader(
+                Objects.requireNonNull(getClass().getClassLoader().getResourceAsStream(csvFilePath))))) {
+            String[] values;
+
+            csvReader.readNext(); // Skip header
+
+            while ((values = csvReader.readNext()) != null) {
+                String movieName = values[0];
+                Integer year = Integer.parseInt(values[1]);
+                String country = values[2];
+                String genre = values[3];
+                String description = values[4];
+
+                Movie movie = new Movie();
+                movie.setMovieName(movieName);
+                movie.setYear(year);
+                movie.setCountry(country);
+                movie.setGenre(genre);
+                movie.setDescription(description);
+
+                movieDAO.insertMovie(movie);
+                log.info("Loaded movie: {}", movieName);
+            }
+            log.info("Successfully loaded all movies from CSV");
+        } catch (IOException | CsvValidationException e) {
+            log.error("Failed to load movies from CSV: {}", e.getMessage(), e);
+        }
     }
 
     public List<MovieDTO>getAllMovies(){

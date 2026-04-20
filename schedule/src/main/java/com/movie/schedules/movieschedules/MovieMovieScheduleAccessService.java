@@ -41,20 +41,32 @@ public class MovieMovieScheduleAccessService implements MovieScheduleDAO {
     @Override
     public void createSchedule(MovieSchedule movieSchedule) {
 
-       String sql = """
-            INSERT INTO schedules (date, start_time, end_time,available_seats,cinema_id,movie_id)
+        String sql = """
+            INSERT INTO schedules
+            (date, start_time, end_time, available_seats, cinema_id, movie_id)
             VALUES (?, ?, ?, ?, ?, ?)
+            RETURNING schedule_id
             """;
-        jdbcTemplate.update(sql,
 
+        Long generatedId = jdbcTemplate.queryForObject(
+                sql,
+                Long.class,
                 movieSchedule.getDate(),
                 movieSchedule.getStartTime(),
                 movieSchedule.getEndTime(),
                 movieSchedule.getAvailableSeats(),
                 movieSchedule.getCinemaId(),
-                movieSchedule.getMovieId());
+                movieSchedule.getMovieId()
+        );
 
-        log.info("Schedule created: " + movieSchedule);
+        if (generatedId == null) {
+            throw new RuntimeException("Failed to generate schedule_id");
+        }
+
+        // CRITICAL FIX:
+        movieSchedule.setScheduleId(generatedId);
+
+        log.info("Schedule created with ID {}", generatedId);
     }
 
     public boolean scheduleExists(Long cinemaId, Long movieId, LocalDate date, LocalTime startTime, LocalTime endTime) {

@@ -34,6 +34,7 @@ public class SeatSecurityFilterChainConfig {
                 .csrf(csrf-> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.GET, "/api/v1/seats/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/seats/schedule/*/create-all").permitAll() // Internal service-to-service call
                         .requestMatchers(HttpMethod.POST, "/api/v1/seats/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT, "/api/v1/seats/{seatId}/update-occupation").authenticated()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/seats/**").hasRole("ADMIN")
