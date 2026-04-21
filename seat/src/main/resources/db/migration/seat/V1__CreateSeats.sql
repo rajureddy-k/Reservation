@@ -5,7 +5,7 @@ CREATE TABLE seats (
     row VARCHAR(10) NOT NULL,
     type VARCHAR(20) NOT NULL,
     cinema_id BIGINT,
-    schedule_id BIGINT NOT NULL,
+    schedule_id BIGINT,  -- Allow NULL for template seats
     is_occupied BOOLEAN DEFAULT false
 );
 

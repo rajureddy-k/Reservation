@@ -2,6 +2,8 @@ package com.movie.seats.seat;
 
 import com.movie.exceptions.ResourceNotFoundException;
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
@@ -64,6 +66,7 @@ public class SeatAccessService implements SeatDAO{
 
     @Override
     public void insertSeat(Seat seat) {
+        
         var sql = """
         INSERT INTO seats (seat_number, row, type, cinema_id, schedule_id, is_occupied) VALUES (?, ?, ?, ?, ?, ?)
         """;

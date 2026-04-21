@@ -159,11 +159,14 @@ public class SeatService {
         if (cinemaId == null) {
             return;
         }
-        if (seatDAO.countSeatsByCinemaId(cinemaId) > 0) {
+        int existingCount = seatDAO.countSeatsByCinemaId(cinemaId);
+        if (existingCount > 0) {
+            log.debug("Template seats already exist for cinema {}: {} seats", cinemaId, existingCount);
             return;
         }
-        log.info("No seats found for cinema {}. Generating default seat inventory.", cinemaId);
+        log.info("No template seats found for cinema {}. Generating default seat inventory (40 seats: 5 rows x 8 seats).", cinemaId);
         generateDefaultSeatsForCinema(cinemaId);
+        log.info("Successfully created template seats for cinema {}", cinemaId);
     }
 
     private void generateDefaultSeatsForCinema(Long cinemaId) {
@@ -184,15 +187,11 @@ public class SeatService {
     }
 
     private String getDefaultSeatType(String row, int seatNumber) {
-        if ("A".equals(row) && seatNumber <= 4) {
+        // Row E is for VIP seats
+        if ("E".equals(row)) {
             return SeatType.VIP.name();
         }
-        if ("D".equals(row) && seatNumber <= 2) {
-            return SeatType.DISABLED.name();
-        }
-        if ("E".equals(row) && seatNumber <= 2) {
-            return SeatType.DISABLED.name();
-        }
+        // Standard seats for all other rows
         return SeatType.STANDARD.name();
     }
 
@@ -245,24 +244,28 @@ public class SeatService {
     }
 
     public void createSeatsForSchedule(Long scheduleId, Long cinemaId) {
+        log.info("createSeatsForSchedule called: scheduleId={}, cinemaId={}", scheduleId, cinemaId);
+        
         // Check if seats already exist for this schedule
-        if (seatDAO.countSeatsByScheduleId(scheduleId) > 0) {
-            log.info("Seats already exist for schedule {}, skipping creation", scheduleId);
-            return; // Seats already created for this schedule
+        int existingScheduleSeats = seatDAO.countSeatsByScheduleId(scheduleId);
+        if (existingScheduleSeats > 0) {
+            log.warn("Seats already exist for schedule {}: {} seats. Skipping creation.", scheduleId, existingScheduleSeats);
+            return;
         }
 
         // Ensure template seats exist for this cinema
+        log.info("Ensuring template seats exist for cinema {}", cinemaId);
         ensureDefaultSeatsForCinema(cinemaId);
         
         // Get all template seats for the cinema (only seats with schedule_id = NULL)
         List<Seat> cinemaSeats = seatDAO.selectSeatsByCinemaId(cinemaId);
         
         if (cinemaSeats.isEmpty()) {
-            log.warn("No template seats found for cinema {} when creating seats for schedule {}", cinemaId, scheduleId);
-            return;
+            log.error("No template seats found for cinema {} when creating seats for schedule {}", cinemaId, scheduleId);
+            throw new RuntimeException("No template seats available for cinema " + cinemaId);
         }
         
-        log.info("Creating {} schedule-specific seats for schedule {} from template seats", cinemaSeats.size(), scheduleId);
+        log.info("Creating {} schedule-specific seats for schedule {} by copying template seats", cinemaSeats.size(), scheduleId);
         
         // Create seats for the schedule by copying from cinema seats
         for (Seat cinemaSeat : cinemaSeats) {
@@ -272,10 +275,12 @@ public class SeatService {
             scheduleSeat.setRow(cinemaSeat.getRow());
             scheduleSeat.setSeatNumber(cinemaSeat.getSeatNumber());
             scheduleSeat.setType(cinemaSeat.getType());
-            scheduleSeat.setOccupied(false); // New schedule seats start unoccupied
+            scheduleSeat.setOccupied(false);
             
             seatDAO.insertSeat(scheduleSeat);
         }
+        
+        log.info("Successfully created {} schedule-specific seats for schedule {}", cinemaSeats.size(), scheduleId);
     }
 
 
@@ -388,8 +393,11 @@ public class SeatService {
     }
 
     public int getTotalSeatsByCinemaId(Long cinemaId) {
+        log.info("getTotalSeatsByCinemaId called for cinema: {}", cinemaId);
         ensureDefaultSeatsForCinema(cinemaId);
-        return seatDAO.countSeatsByCinemaId(cinemaId);
+        int totalSeats = seatDAO.countSeatsByCinemaId(cinemaId);
+        log.info("Total template seats (schedule_id = NULL) for cinema {}: {}", cinemaId, totalSeats);
+        return totalSeats;
     }
 
     public boolean isSeatOccupied(Long seatId) {
