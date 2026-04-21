@@ -41,6 +41,10 @@ public class MovieMovieScheduleAccessService implements MovieScheduleDAO {
     @Override
     public void createSchedule(MovieSchedule movieSchedule) {
 
+        log.info("Inserting schedule into DB with values: date={}, startTime={}, endTime={}, availableSeats={}, cinemaId={}, movieId={}",
+                movieSchedule.getDate(), movieSchedule.getStartTime(), movieSchedule.getEndTime(), 
+                movieSchedule.getAvailableSeats(), movieSchedule.getCinemaId(), movieSchedule.getMovieId());
+
         String sql = """
             INSERT INTO schedules
             (date, start_time, end_time, available_seats, cinema_id, movie_id)

@@ -26,9 +26,6 @@ public interface SeatClient {
     @PutMapping("/api/v1/seats/{seatId}/update-occupation")
     void updateSeatOccupation(@PathVariable("seatId") Long seatId, @RequestBody boolean isOccupied);
 
-    @GetMapping("/api/v1/seats/{seatId}/price")
-    BigDecimal getSeatPriceById(@PathVariable("seatId") Long seatId);
-
     @GetMapping("/api/v1/seats/price/{seatType}")
     BigDecimal getSeatPriceByType(@PathVariable("seatType") String seatType);
 
@@ -38,6 +35,6 @@ public interface SeatClient {
     @PostMapping("/api/v1/seats/schedule/{scheduleId}/create-all")
     void createSeatsForSchedule(@PathVariable("scheduleId") Long scheduleId, @RequestParam("cinemaId") Long cinemaId);
 
+    @PostMapping("/api/v1/seats/cinema/{cinemaId}/ensure-default-seats")
+    void ensureDefaultSeatsForCinema(@PathVariable("cinemaId") Long cinemaId);
 }
-
-

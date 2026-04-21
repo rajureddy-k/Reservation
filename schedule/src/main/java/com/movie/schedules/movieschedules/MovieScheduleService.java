@@ -10,6 +10,8 @@ import com.movie.exceptions.AlreadyOccupiedException;
 import com.movie.exceptions.RequestValidationException;
 import com.movie.exceptions.ResourceNotFoundException;
 import lombok.AllArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
@@ -24,6 +26,7 @@ import java.util.stream.Collectors;
     @Service
     @AllArgsConstructor
     public class MovieScheduleService {
+        private static final Logger log = LoggerFactory.getLogger(MovieScheduleService.class);
 
         private final MovieScheduleDAO movieScheduleDAO;
         private final MovieScheduleDTOMapper movieScheduleDTOMapper;
@@ -95,6 +98,8 @@ import java.util.stream.Collectors;
             throw new RuntimeException("Unable to fetch seat data for the specified cinema.");
         }
 
+        log.info("Fetched total seats for cinema {}: {} seats", movieScheduleRegistrationRequest.cinemaId(), totalSeatsDTO.getTotalSeats());
+
         MovieSchedule movieSchedule = new MovieSchedule();
         movieSchedule.setDate(scheduleDate);
         movieSchedule.setStartTime(movieScheduleRegistrationRequest.startTime());
@@ -102,9 +107,13 @@ import java.util.stream.Collectors;
         movieSchedule.setAvailableSeats(totalSeatsDTO.totalSeats());
         movieSchedule.setCinemaId(movieScheduleRegistrationRequest.cinemaId());
         movieSchedule.setMovieId(movieScheduleRegistrationRequest.movieId());
+        
+        log.info("Creating schedule with availableSeats={} for cinema {}", movieSchedule.getAvailableSeats(), movieScheduleRegistrationRequest.cinemaId());
         movieScheduleDAO.createSchedule(movieSchedule);
+        log.info("Schedule created with ID: {}, availableSeats: {}", movieSchedule.getScheduleId(), movieSchedule.getAvailableSeats());
 
         // Create seats for the new schedule
+        log.info("Now creating schedule-specific seats for schedule {}", movieSchedule.getScheduleId());
         seatClient.createSeatsForSchedule(movieSchedule.getScheduleId(), movieScheduleRegistrationRequest.cinemaId());
 
         NotificationRequest notificationRequest = new NotificationRequest(
